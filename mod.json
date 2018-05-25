@@ -1,0 +1,22 @@
+{
+    "Name": "TestBattletechMod",
+    "Enabled": true,
+
+    "Version": "0.1.0",
+    "Description": "An educational primer for CWolf",
+    "Author": "CWolf",
+    "Website": "https://github.com/CWolfs/TestBattletechMod/",
+    "Contact": "cwolfs@gmail.com",
+
+    "DLL": "TestBattletechMod.dll",
+    "DLLEntryPoint": "TestBattletechMod.TestMain.Init",
+    "Settings": {
+        "DoCoolStuff": true,
+        "BadStuffToAvoid": 1000
+    },
+
+    "Manifest": [
+        { "Type": "MechDef", "Path": "MyMechDefs" },
+        { "Type": "ChassisDef", "Path": "MyChassisDefs\\chassisdef_specific_chassis.json" }
+    ]
+}
