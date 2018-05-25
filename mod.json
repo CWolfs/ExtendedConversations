@@ -13,10 +13,5 @@
     "Settings": {
         "DoCoolStuff": true,
         "BadStuffToAvoid": 1000
-    },
-
-    "Manifest": [
-        { "Type": "MechDef", "Path": "MyMechDefs" },
-        { "Type": "ChassisDef", "Path": "MyChassisDefs\\chassisdef_specific_chassis.json" }
-    ]
+    }
 }
