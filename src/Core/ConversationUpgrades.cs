@@ -1,16 +1,39 @@
 using UnityEngine;
 using System;
 using Harmony;
+
+using BattleTech;
 using TScript;
 using TScript.Ops;
 using HBS.Logging;
+using HBS.Collections;
 
-namespace TestBattletechMod.Core {
+using ExtendedConversations;
+
+namespace ExtendedConversations.Core {
   public class ConversationUpgrades {
-    private static ILog Log = HBS.Logging.Logger.GetLogger(typeof(ConversationUpgrades).Name, LogLevel.Log);
-
     public static void Declare(TsEnvironment env) {
-      Log.Log("Testing ConversationUpgrades Declare");
+      Main.Logger.Log("Declaring conversation updates");
+
+      TsType boolType = env.GetType("bool");
+      TsType HasOrHasNotType = env.GetType("HasOrHasNot");
+      TsType SenseTagListType = env.GetType("SenseTagList");
+
+      Main.Logger.Log("Declaring 'Evaluate Tag for Current System' condition operation");
+      TsOp tsOp = env.DeclareOp("ConditionFunction", "Evaluate Tag for Current System", boolType, new TsOp.EvalDelegate(ConversationUpgrades.EvaluateTagForCurrentSystem));
+			tsOp.DeclareInput("comp", HasOrHasNotType);
+			tsOp.DeclareInput("tagName", SenseTagListType);
+
+      Main.Logger.Log("Finished declaring conversation upgrades");
     }
+
+    /* OPERATIONS */
+    public static object EvaluateTagForCurrentSystem(TsEnvironment env, object[] inputs) {
+			bool flag = env.ToBool(inputs[0]);
+			string value = env.ToString(inputs[1]);
+			TagSet currentSystemTags = UnityGameInstance.BattleTechGame.Simulation.CurSystem.Tags;
+			bool flag2 = currentSystemTags.Contains(value) == flag;
+			return flag2;
+		}
   }
 }

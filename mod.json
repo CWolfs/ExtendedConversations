@@ -1,15 +1,15 @@
 {
-    "Name": "TestBattletechMod",
+    "Name": "ExtendedConversations",
     "Enabled": true,
 
     "Version": "0.1.0",
-    "Description": "An educational primer for CWolf",
+    "Description": "Extended Conversations is a utility mod to provide more conversation conditions, actions and other functionality",
     "Author": "CWolf",
-    "Website": "https://github.com/CWolfs/TestBattletechMod/",
+    "Website": "https://github.com/CWolfs/ExtendedConversations/",
     "Contact": "cwolfs@gmail.com",
 
-    "DLL": "TestBattletechMod.dll",
-    "DLLEntryPoint": "TestBattletechMod.TestMain.Init",
+    "DLL": "ExtendedConversations.dll",
+    "DLLEntryPoint": "ExtendedConversations.Main.Init",
     "Settings": {
         "DoCoolStuff": true,
         "BadStuffToAvoid": 1000

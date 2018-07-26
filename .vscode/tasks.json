@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "D:/Modding/Battletech/TestBattletechMod/src/TestBattletechMod.csproj"
+                "D:/Modding/Battletech/ExtendedConversations/src/ExtendedConversations.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
