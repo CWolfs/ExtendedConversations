@@ -1,7 +1,3 @@
-# Test Battletech Mod
+# Extended Conversations
 
-This is a test mod to get familiar with HBS's Battletech for modding.
-
-## Overview
-
-This will contain source code injection and overriding, or new, streaming assets.
+Extended Conversations is a HBS' BattleTech conversation-based utility mod. It extends the conversation system to provide more actions, conditions and more.
