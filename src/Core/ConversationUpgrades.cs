@@ -36,6 +36,6 @@ namespace ExtendedConversations.Core {
       bool flag2 = currentSystemTags.Contains(value) == flag;
       Main.Logger.Log("EvaluateTagForCurrentSystem finished with result of " + flag2);
       return flag2;
-		}
+    }
   }
 }
