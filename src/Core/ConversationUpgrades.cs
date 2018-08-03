@@ -55,6 +55,8 @@ namespace ExtendedConversations.Core {
 
       // TODO: Add 'Dropship Location' action
 
+      // TODO: Add 'Modify Money' action
+
       Main.Logger.Log("Finished declaring conversation upgrades");
     }
 
