@@ -17,7 +17,7 @@ Some of the actions and conditions added will be usable by the events system too
 ### Actions
 
 * `Time Skip` - This allows you to jump forward in time by the set amount. This processes the usual mechanics like healing, repairs and monthly fees.
-* `Set Current System` - This allows you to set the current star system by star system id (e.g. starsystemdef_Smithon)
+* `Set Current System` - This allows you to set the current star system by star system id (e.g. starsystemdef_Smithon), with the option of using the calculated travel time or not.
 
 ## Author
 
