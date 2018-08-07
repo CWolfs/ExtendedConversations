@@ -66,5 +66,26 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[EvaluateBattleTechInt] Stat {statName} does not exist for conversation operation.");
       return false;
     }
+
+    public static object EvaluateFunds(TsEnvironment env, object[] inputs) {
+      int operation = env.ToInt(inputs[0]);
+      int moneyCheckValue = env.ToInt(inputs[1]);
+      int funds = UnityGameInstance.BattleTechGame.Simulation.Funds;
+
+      switch (operation) {
+        case 1: // less than
+          return (funds < moneyCheckValue);
+        case 2: // equal to
+          return (funds == moneyCheckValue);
+        case 3: // greater than
+          return (funds > moneyCheckValue);
+        case 4: // less than or equal to
+          return (funds <= moneyCheckValue);
+        case 5: // greater than or equal to
+          return (funds >= moneyCheckValue);
+        default:
+          return false;
+      }
+    }
   }
 }
