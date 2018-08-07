@@ -15,7 +15,7 @@ Some of the actions and conditions added will be usable by the events system too
 
 ### Actions
 
-_Coming Soon_
+* `Time Skip` - This allows you to jump forward in time by the set amount. This processes the usual mechanics like healing, repairs and monthly fees.
 
 ## Author
 
