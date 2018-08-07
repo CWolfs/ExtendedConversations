@@ -18,7 +18,10 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[TimeSkip] Triggered with days to skip '{daysToSkip}'");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-      ReflectionHelper.InvokePrivateMethod(simulation, "OnDayPassed", new object[]{ daysToSkip });
+
+      for (int i = 0; i < daysToSkip; i++) {
+        ReflectionHelper.InvokePrivateMethod(simulation, "OnDayPassed", new object[] { 0 });
+      }
 
       Main.Logger.Log($"[TimeSkip] Skip complete");
       return null;
