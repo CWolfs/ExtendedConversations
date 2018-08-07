@@ -11,7 +11,8 @@ Some of the actions and conditions added will be usable by the events system too
 ### Conditions
 
 * `Evaluate Tag for Current System` - This allows you to check if the current system has the tag specified.
-* `Evaluate BattleTech Int` - This allows you to evaluate a commander, company or current system integer statistic.
+* `Evaluate BattleTech Int` - This allows you to check against a commander, company or current system integer statistic.
+* `Evalute Funds` - This allows you to check a fund amount against the company funds.
 
 ### Actions
 
