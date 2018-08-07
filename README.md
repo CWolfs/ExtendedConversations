@@ -10,13 +10,14 @@ Some of the actions and conditions added will be usable by the events system too
 
 ### Conditions
 
-* `Evaluate Tag for Current System` - This allows you to check if the current system has the tag specified.
+* `Evaluate Tag for Current System` - This allows you to check if the current star system has the tag specified.
 * `Evaluate BattleTech Int` - This allows you to check against a commander, company or current system integer statistic.
 * `Evaluate Funds` - This allows you to check a fund amount against the company funds.
 
 ### Actions
 
 * `Time Skip` - This allows you to jump forward in time by the set amount. This processes the usual mechanics like healing, repairs and monthly fees.
+* `Set Current System` - This allows you to set the current star system by star system id (e.g. starsystemdef_Smithon)
 
 ## Author
 
