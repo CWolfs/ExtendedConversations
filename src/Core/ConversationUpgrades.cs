@@ -34,7 +34,7 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("comp", HasOrHasNotType);
       tsOp.DeclareInput("tagName", SenseTagListType);
 
-      // TODO: Add `Evaluate BattleTech Int` condition
+      // `Evaluate BattleTech Int` condition
       Main.Logger.Log("Declaring 'Evaluate BattleTech Int' condition");
       tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech Int", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechInt));
 			tsOp.DeclareInput("scope", SimGameScopeType);
@@ -46,7 +46,11 @@ namespace ExtendedConversations.Core {
 
       // TODO: Add `Evaluate BattleTech String` condition
 
-      // TODO: Add `Evaluate Money` condition
+      // Evaluate Funds
+      Main.Logger.Log("Declaring 'Evaluate Funds' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate Funds", boolType, new TsOp.EvalDelegate(Conditions.EvaluateFunds));
+      tsOp.DeclareInput("operation", intType);
+			tsOp.DeclareInput("value", intType);
 
       /*
       * ACTIONS
@@ -59,7 +63,7 @@ namespace ExtendedConversations.Core {
 
       // TODO: Add 'Dropship Location' action
 
-      // TODO: Add 'Modify Money' action
+      // TODO: Add 'Modify Funds' action
 
       Main.Logger.Log("Finished declaring conversation upgrades");
     }
