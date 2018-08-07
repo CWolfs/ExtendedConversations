@@ -69,6 +69,11 @@ namespace ExtendedConversations.Core {
 
       // TODO: Add 'Modify Funds' action
 
+      /*
+      * VALUE GETTERS
+      */
+      // TODO: Add `Get BattleTech String` getter
+
       Main.Logger.Log("Finished declaring conversation upgrades");
     }
   }
