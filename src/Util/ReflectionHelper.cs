@@ -15,10 +15,17 @@ namespace ExtendedConversations.Utils {
             return methodInfo.Invoke(instance, parameters);
         }
 
-        public static void SetPrivateProperty(object instance, string propertyname, object value) {
+        public static void SetPrivateProperty(object instance, string propertyName, object value) {
             Type type = instance.GetType();
-            PropertyInfo property = type.GetProperty(propertyname, BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo property = type.GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance);
             property.SetValue(instance, value, null);
+        }
+
+        public static void SetReadOnlyProperty(object instance, string propertyName, object value) {
+            Type type = instance.GetType();
+            PropertyInfo property = type.GetProperty(propertyName);
+            property.DeclaringType.GetProperty(propertyName);
+            property.SetValue(instance, value, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
         }
 
         public static void SetPrivateField(object instance, string fieldname, object value) {
