@@ -25,6 +25,17 @@ namespace ExtendedConversations.Core {
 
       Main.Logger.Log($"[TimeSkip] Skip complete");
       return null;
-    } 
+    }
+
+    public static object SetCurrentSystem(TsEnvironment env, object[] inputs) {
+      string systemName = env.ToString(inputs[0]);
+      Main.Logger.Log($"[SetCurrentSystem] Travelling to '{systemName}'");
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      simulation.TravelToSystemByString(systemName, true);
+      
+      Main.Logger.Log($"[SetCurrentSystem] Travel complete");
+      return null;
+    }
   }
 }

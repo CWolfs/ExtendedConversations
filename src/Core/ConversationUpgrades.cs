@@ -56,12 +56,15 @@ namespace ExtendedConversations.Core {
       * ACTIONS
       */
 
-      // TODO: Add `TimeSkip` action
+      // `TimeSkip` action
       Main.Logger.Log("Declaring 'Time Skip' action");
       tsOp = env.DeclareOp("EffectFunctions", "Time Skip", voidType, new TsOp.EvalDelegate(Actions.TimeSkip));
       tsOp.DeclareInput("days", intType);
 
-      // TODO: Add 'Dropship Location' action
+      // `Set Current System` action
+      Main.Logger.Log("Declaring 'Set Current System' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Set Current System", voidType, new TsOp.EvalDelegate(Actions.SetCurrentSystem));
+      tsOp.DeclareInput("systemName", stringType);
 
       // TODO: Add 'Modify Funds' action
 
