@@ -65,6 +65,7 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Set Current System' action");
       tsOp = env.DeclareOp("EffectFunctions", "Set Current System", voidType, new TsOp.EvalDelegate(Actions.SetCurrentSystem));
       tsOp.DeclareInput("systemName", stringType);
+      tsOp.DeclareInput("includeTravelTime", intType);
 
       // TODO: Add 'Modify Funds' action
 
