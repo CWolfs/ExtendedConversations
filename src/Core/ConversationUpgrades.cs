@@ -72,7 +72,11 @@ namespace ExtendedConversations.Core {
       /*
       * VALUE GETTERS
       */
-      // TODO: Add `Get BattleTech String` getter
+      // `Get BattleTech String` value getter
+      Main.Logger.Log("Declaring 'Get BattleTech String' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech String", stringType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechString));
+      tsOp.DeclareInput("scope", intType);
+      tsOp.DeclareInput("statName", stringType);
 
       Main.Logger.Log("Finished declaring conversation upgrades");
     }
