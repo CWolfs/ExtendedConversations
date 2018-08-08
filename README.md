@@ -21,7 +21,7 @@ Some of the actions and conditions added will be usable by the events system too
 
 ### Value Getters
 
-* `Get BattleTech String` - This can be used in the above conditions and actions. It allows you to grab a string commander, company or current system statistic for use in the other operations. An example would be storing a system id in a company stat, then using this to pull out the system id in the `Set Current System` action.
+* `Get BattleTech String` - This can be used in the above conditions and actions. It allows you to grab a commander, company or current system string statistic for use in the other operations. An example would be storing a system id in a company stat, then using this to pull out the system id in the `Set Current System` action.
 
 ## Author
 
