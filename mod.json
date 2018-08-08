@@ -2,7 +2,7 @@
     "Name": "ExtendedConversations",
     "Enabled": true,
 
-    "Version": "0.1.0",
+    "Version": "0.2.0",
     "Description": "Extended Conversations is a utility mod to provide more conversation conditions, actions and other functionality",
     "Author": "CWolf",
     "Website": "https://github.com/CWolfs/ExtendedConversations/",
@@ -11,7 +11,6 @@
     "DLL": "ExtendedConversations.dll",
     "DLLEntryPoint": "ExtendedConversations.Main.Init",
     "Settings": {
-        "DoCoolStuff": true,
-        "BadStuffToAvoid": 1000
+        "PlaceHolder": false
     }
 }
