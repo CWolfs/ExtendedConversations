@@ -13,12 +13,13 @@ using ExtendedConversations;
 namespace ExtendedConversations.Core {
   public class Conditions {
     public static object EvaluateTagForCurrentSystem(TsEnvironment env, object[] inputs) {
-      Main.Logger.Log("EvaluateTagForCurrentSystem triggered");
       bool flag = env.ToBool(inputs[0]);
       string value = env.ToString(inputs[1]);
+      Main.Logger.Log($"[EvaluateTagForCurrentSystem] Triggered with flag {flag} and value {value}.");
+
       TagSet currentSystemTags = UnityGameInstance.BattleTechGame.Simulation.CurSystem.Tags;
       bool flag2 = currentSystemTags.Contains(value) == flag;
-      Main.Logger.Log("EvaluateTagForCurrentSystem finished with result of " + flag2);
+      Main.Logger.Log("[EvaluateTagForCurrentSystem] Finished with result of " + flag2);
       return flag2;
     }
 
