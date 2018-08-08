@@ -19,6 +19,10 @@ Some of the actions and conditions added will be usable by the events system too
 * `Time Skip` - This allows you to jump forward in time by the set amount. This processes the usual mechanics like healing, repairs and monthly fees.
 * `Set Current System` - This allows you to set the current star system by star system id (e.g. starsystemdef_Smithon), with the option of using the calculated travel time or not.
 
+### Value Getters
+
+* `Get BattleTech String` - This can be used in the above conditions and actions. It allows you to grab a string commander, company or current system statistic for use in the other operations. An example would be storing a system id in a company stat, then using this to pull out the system id in the `Set Current System` action.
+
 ## Author
 
 Richard Griffiths (CWolf)
