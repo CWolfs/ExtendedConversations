@@ -9,7 +9,9 @@ Use [ConverseTek - Sim Conversation Editor](https://github.com/CWolfs/ConverseTe
 ### Conditions
 
 * `Evaluate Tag for Current System` - This allows you to check if the current star system has the tag specified.
+* `Evaluate BattleTech String` - This allows you to check against a commander, company or current system string statistic.
 * `Evaluate BattleTech Int` - This allows you to check against a commander, company or current system integer statistic.
+* `Evaluate BattleTech Float` - This allows you to check against a commander, company or current system float statistic.
 * `Evaluate Funds` - This allows you to check a fund amount against the company funds.
 
 ### Actions
