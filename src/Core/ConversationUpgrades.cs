@@ -17,6 +17,7 @@ namespace ExtendedConversations.Core {
 
       TsType voidType = env.GetType("void");
       TsType intType = env.GetType("int");
+      TsType floatType = env.GetType("float");
       TsType boolType = env.GetType("bool");
       TsType stringType = env.GetType("string");
 
@@ -79,6 +80,16 @@ namespace ExtendedConversations.Core {
       // `Get BattleTech String` value getter
       Main.Logger.Log("Declaring 'Get BattleTech String' value getter");
       tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech String", stringType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechString));
+      tsOp.DeclareInput("scope", intType);
+      tsOp.DeclareInput("statName", stringType);
+
+      Main.Logger.Log("Declaring 'Get BattleTech Int' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech Int", intType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechInt));
+      tsOp.DeclareInput("scope", intType);
+      tsOp.DeclareInput("statName", stringType);
+
+      Main.Logger.Log("Declaring 'Get BattleTech Float' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech Float", floatType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechFloat));
       tsOp.DeclareInput("scope", intType);
       tsOp.DeclareInput("statName", stringType);
 

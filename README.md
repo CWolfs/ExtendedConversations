@@ -21,6 +21,8 @@ Use [ConverseTek - Sim Conversation Editor](https://github.com/CWolfs/ConverseTe
 ### Value Getters
 
 * `Get BattleTech String` - This can be used in the above conditions and actions. It allows you to grab a commander, company or current system string statistic for use in the other operations. An example would be storing a system id in a company stat, then using this to pull out the system id in the `Set Current System` action.
+* `Get BattleTech Int` - Same as above but for the return type of 'int'
+* `Get BattleTech Float` - Same as above but for the return type of 'float'
 
 ## Author
 
