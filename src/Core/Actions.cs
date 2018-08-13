@@ -45,5 +45,25 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[SetCurrentSystem] Travel complete");
       return null;
     }
+    
+    public static object ModifyFunds(TsEnvironment env, object[] inputs) {
+      int operation = env.ToInt(inputs[0]);
+      int amount = env.ToInt(inputs[1]);
+      Main.Logger.Log($"[ModifyFunds] Operation '{operation}' with amount '{amount}'.'");
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+
+      if (operation == 1) { // ADD
+        simulation.AddFunds(amount);
+      } else if (operation == 2) { // REMOVE
+        simulation.AddFunds(-amount);
+      } else {
+        Main.Logger.LogError($"[ModifyFunds] Unknown operation type of '{operation}'");
+        return null;
+      }
+      
+      Main.Logger.Log($"[ModifyFunds] Funds modified.");
+      return null;
+    }
   }
 }
