@@ -53,9 +53,9 @@ namespace ExtendedConversations.Core {
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
 
-      if (operation == 1) { // ADD
+      if (operation == 0) { // ADD
         simulation.AddFunds(amount);
-      } else if (operation == 2) { // REMOVE
+      } else if (operation == 1) { // REMOVE
         simulation.AddFunds(-amount);
       } else {
         Main.Logger.LogError($"[ModifyFunds] Unknown operation type of '{operation}'");
