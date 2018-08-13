@@ -13,25 +13,12 @@ using ExtendedConversations.Utils;
 
 namespace ExtendedConversations.Core {
   public class ValueGetters {
-    private static StatCollection GetStatCollection(int scope) {
-      switch (scope) {
-        case 1:
-          return UnityGameInstance.BattleTechGame.Simulation.CompanyStats;
-        case 2:
-          return UnityGameInstance.BattleTechGame.Simulation.CommanderStats;
-        case 3:
-          return UnityGameInstance.BattleTechGame.Simulation.CurSystem.Stats;
-        default:
-          return null;
-      }
-    }
-
     public static object GetBattleTechString(TsEnvironment env, object[] inputs) {
       int statScope = env.ToInt(inputs[0]);
       string statName = env.ToString(inputs[1]);
       Main.Logger.Log($"[GetBattleTechString] Triggered with scope {statScope} and statName {statName}.");
 
-      StatCollection statCollection = GetStatCollection(statScope);
+      StatCollection statCollection = SimHelper.GetStatCollection(statScope);
       if (statCollection == null) { // GUARD
         Main.Logger.LogError($"[GetBattleTechFloat] StatCollection is null for {statScope}");
         return null;
@@ -52,7 +39,7 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       Main.Logger.Log($"[GetBattleTechInt] Triggered with scope {statScope} and statName {statName}.");
 
-      StatCollection statCollection = GetStatCollection(statScope);
+      StatCollection statCollection = SimHelper.GetStatCollection(statScope);
       if (statCollection == null) { // GUARD
         Main.Logger.LogError($"[GetBattleTechFloat] StatCollection is null for {statScope}");
         return null;
@@ -73,7 +60,7 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       Main.Logger.Log($"[GetBattleTechFloat] Triggered with scope {statScope} and statName {statName}.");
 
-      StatCollection statCollection = GetStatCollection(statScope);
+      StatCollection statCollection = SimHelper.GetStatCollection(statScope);
       if (statCollection == null) { // GUARD
         Main.Logger.LogError($"[GetBattleTechFloat] StatCollection is null for {statScope}");
         return null;
