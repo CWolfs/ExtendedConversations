@@ -67,7 +67,11 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("systemName", stringType);
       tsOp.DeclareInput("includeTravelTime", intType);
 
-      // TODO: Add 'Modify Funds' action
+      // 'Modify Funds' action
+      Main.Logger.Log("Declaring 'Modify Funds' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Modify Funds", voidType, new TsOp.EvalDelegate(Actions.ModifyFunds));
+      tsOp.DeclareInput("operation", intType);
+      tsOp.DeclareInput("amount", intType);
 
       /*
       * VALUE GETTERS
