@@ -3,10 +3,12 @@ using System;
 using Harmony;
 
 using BattleTech;
+using BattleTech.UI;
 using TScript;
 using TScript.Ops;
 using HBS.Logging;
 using HBS.Collections;
+using isogame;
 
 using ExtendedConversations;
 using ExtendedConversations.Utils;
@@ -63,6 +65,18 @@ namespace ExtendedConversations.Core {
       }
       
       Main.Logger.Log($"[ModifyFunds] Funds modified.");
+      return null;
+    }
+
+    public static object StartConversation(TsEnvironment env, object[] inputs) {
+      string conversationId = env.ToString(inputs[0]);
+      string groupHeader = env.ToString(inputs[1]);
+      string groupSubHeader = env.ToString(inputs[2]);
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      SimGameInterruptManager interruptManage = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
+      interruptManage.QueueConversation(simulation.DataManager.SimGameConversations.Get(conversationId), groupHeader, groupSubHeader, null, true);
+
       return null;
     }
   }

@@ -85,6 +85,13 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Modify Funds", voidType, new TsOp.EvalDelegate(Actions.ModifyFunds));
       tsOp.DeclareInput("operation", intType);
       tsOp.DeclareInput("amount", intType);
+    
+      // 'Start Conversation' action
+      Main.Logger.Log("Declaring 'Start Conversation' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Start Conversation Custom", voidType, new TsOp.EvalDelegate(Actions.StartConversation));
+      tsOp.DeclareInput("conversationId", stringType);
+      tsOp.DeclareInput("groupHeader", stringType);
+      tsOp.DeclareInput("groupSubHeader", stringType);
 
       /*
       * VALUE GETTERS
