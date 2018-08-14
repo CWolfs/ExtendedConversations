@@ -72,10 +72,20 @@ namespace ExtendedConversations.Core {
       string conversationId = env.ToString(inputs[0]);
       string groupHeader = env.ToString(inputs[1]);
       string groupSubHeader = env.ToString(inputs[2]);
+      Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-      SimGameInterruptManager interruptManage = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
-      interruptManage.QueueConversation(simulation.DataManager.SimGameConversations.Get(conversationId), groupHeader, groupSubHeader, null, true);
+      SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
+      
+      Conversation conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
+      if (conversation == null) {
+        Main.Logger.Log($"[StartConversation] Conversation is null for id {conversationId}");
+      } else {
+        simulation.ConversationManager.OneOnOneDialogInterrupt();
+        // TODO: Check there's not a race condition here - coroutine wait it up for a second or something
+        interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
+        Main.Logger.Log($"[StartConversation] Conversaton queued for immediate start.");
+      }
 
       return null;
     }
