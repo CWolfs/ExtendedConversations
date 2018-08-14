@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 using Harmony;
 
 using BattleTech;
@@ -75,19 +76,23 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-      SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
       
       Conversation conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
       if (conversation == null) {
         Main.Logger.Log($"[StartConversation] Conversation is null for id {conversationId}");
       } else {
         simulation.ConversationManager.OneOnOneDialogInterrupt();
-        // TODO: Check there's not a race condition here - coroutine wait it up for a second or something
-        interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
+        UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader));
         Main.Logger.Log($"[StartConversation] Conversaton queued for immediate start.");
       }
 
       return null;
+    }
+
+    static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader) {
+      yield return new WaitForSeconds(1);
+      SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
+      interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
     }
   }
 }
