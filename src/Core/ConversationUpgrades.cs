@@ -85,7 +85,13 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Modify Funds", voidType, new TsOp.EvalDelegate(Actions.ModifyFunds));
       tsOp.DeclareInput("operation", intType);
       tsOp.DeclareInput("amount", intType);
-    
+
+      // 'Set Character Visible' action
+      Main.Logger.Log("Declaring 'Set Characters Visible' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Set Characters Visible", voidType, new TsOp.EvalDelegate(Actions.SetCharactersVisible));
+      tsOp.DeclareInput("isVisible", intType);
+      tsOp.DeclareInput("crewNames", stringType);
+      
       // 'Start Conversation' action
       Main.Logger.Log("Declaring 'Start Conversation' action");
       tsOp = env.DeclareOp("EffectFunctions", "Start Conversation Custom", voidType, new TsOp.EvalDelegate(Actions.StartConversation));

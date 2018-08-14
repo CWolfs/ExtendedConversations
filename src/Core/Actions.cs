@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 using Harmony;
 
 using BattleTech;
@@ -68,16 +69,47 @@ namespace ExtendedConversations.Core {
       return null;
     }
 
+    public static object SetCharactersVisible(TsEnvironment env, object[] inputs) {
+        bool isVisible = env.ToBool(inputs[0]);
+        string crewNamesGrouped = env.ToString(inputs[1]);
+        Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
+        
+        string[] crewNames = crewNamesGrouped.Split(',');
+        
+        foreach (string crewName in crewNames) {
+          SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
+          SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+          simulation.SetCharacterVisibility(character, isVisible);
+        }
+
+        Main.Logger.Log($"[SetCharactersVisible] Finished");
+        return null;
+    }
+
     public static object StartConversation(TsEnvironment env, object[] inputs) {
       string conversationId = env.ToString(inputs[0]);
       string groupHeader = env.ToString(inputs[1]);
       string groupSubHeader = env.ToString(inputs[2]);
+      Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-      SimGameInterruptManager interruptManage = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
-      interruptManage.QueueConversation(simulation.DataManager.SimGameConversations.Get(conversationId), groupHeader, groupSubHeader, null, true);
+      
+      Conversation conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
+      if (conversation == null) {
+        Main.Logger.Log($"[StartConversation] Conversation is null for id {conversationId}");
+      } else {
+        simulation.ConversationManager.OneOnOneDialogInterrupt();
+        UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader));
+        Main.Logger.Log($"[StartConversation] Conversaton queued for immediate start.");
+      }
 
       return null;
+    }
+
+    static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader) {
+      yield return new WaitForSeconds(1);
+      SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
+      interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
     }
   }
 }
