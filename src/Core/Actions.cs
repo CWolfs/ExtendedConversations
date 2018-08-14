@@ -69,6 +69,23 @@ namespace ExtendedConversations.Core {
       return null;
     }
 
+    public static object SetCharactersVisible(TsEnvironment env, object[] inputs) {
+        bool isVisible = env.ToBool(inputs[0]);
+        string crewNamesGrouped = env.ToString(inputs[1]);
+        Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
+        
+        string[] crewNames = crewNamesGrouped.Split(',');
+        
+        foreach (string crewName in crewNames) {
+          SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
+          SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+          simulation.SetCharacterVisibility(character, isVisible);
+        }
+
+        Main.Logger.Log($"[SetCharactersVisible] Finished");
+        return null;
+    }
+
     public static object StartConversation(TsEnvironment env, object[] inputs) {
       string conversationId = env.ToString(inputs[0]);
       string groupHeader = env.ToString(inputs[1]);
