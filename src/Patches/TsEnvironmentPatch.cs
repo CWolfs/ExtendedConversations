@@ -8,7 +8,7 @@ using ExtendedConversations;
 using ExtendedConversations.Core;
 
 namespace ExtendedConversations {
-  [HarmonyPatch(typeof(TsEnvironment))]
+  [HarmonyPatch(typeof(TsEnvironment), MethodType.Constructor)]
   public class TsEnvironmentPatch {
     static void Postfix(TsEnvironment __instance) {
       ConversationUpgrades.Declare(__instance);
