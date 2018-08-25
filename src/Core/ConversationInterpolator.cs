@@ -64,10 +64,7 @@ namespace ExtendedConversations.Core {
       StatCollection statCollection = SimHelper.GetStatCollection(statType);
 
       if (statCollection.ContainsStatistic(statName)) {
-        // TODO: Make this flexible for ints and float types
         string statValue = Convert.ToString(statCollection.GetStatistic(statName).CurrentValue.objVal);
-        // string statValue = (string)statCollection.GetStatistic(statName).CurrentValue.objVal;
-        // string statValue = statCollection.GetValue<string>(statName);
         return statValue;
       } else {
         Main.Logger.LogError($"[InterpolateStats] Stat '{statName}' does not exist for stat collection '{statType}'");
