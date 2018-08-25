@@ -33,7 +33,7 @@ Dialog tags allow you to inject data into your dialog text.
 * `Set Current System` - This allows you to set the current star system by star system id (e.g. starsystemdef_Smithon), with the option of using the calculated travel time or not.
 * `Modify Funds` - This allows you to add, or remove, X amount of cbills from the company funds.
 * `Start Conversation Custom` - This starts a group conversation for you. You specify the conversation id, header and subheader.
-* `Set Characters Visible` - This allows you to show and hide characters in the dropship. You specify the characters in a comma seperated list.
+* `Set Characters Visible` - This allows you to show and hide characters in the dropship. You specify the characters in a comma separated list.
 
 ### Value Getters
 
