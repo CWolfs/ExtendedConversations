@@ -17,6 +17,7 @@ namespace ExtendedConversations.Core {
 
       TsType voidType = env.GetType("void");
       TsType intType = env.GetType("int");
+      TsType floatType = env.GetType("float");
       TsType boolType = env.GetType("bool");
       TsType stringType = env.GetType("string");
 
@@ -34,6 +35,14 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("comp", HasOrHasNotType);
       tsOp.DeclareInput("tagName", SenseTagListType);
 
+      // `Evaluate BattleTech String` condition
+      Main.Logger.Log("Declaring 'Evaluate BattleTech String' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech String", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechString));
+			tsOp.DeclareInput("scope", SimGameScopeType);
+			tsOp.DeclareInput("param", stringType);
+      tsOp.DeclareInput("operation", intType);
+			tsOp.DeclareInput("value", stringType);
+
       // `Evaluate BattleTech Int` condition
       Main.Logger.Log("Declaring 'Evaluate BattleTech Int' condition");
       tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech Int", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechInt));
@@ -42,9 +51,13 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("operation", intType);
 			tsOp.DeclareInput("value", intType);
 
-      // TODO: Add `Evaluate BattleTech Float` condition
-
-      // TODO: Add `Evaluate BattleTech String` condition
+      // `Evaluate BattleTech Float` condition
+      Main.Logger.Log("Declaring 'Evaluate BattleTech Float' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech Float", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechFloat));
+			tsOp.DeclareInput("scope", SimGameScopeType);
+			tsOp.DeclareInput("param", stringType);
+      tsOp.DeclareInput("operation", intType);
+			tsOp.DeclareInput("value", floatType);
 
       // Evaluate Funds
       Main.Logger.Log("Declaring 'Evaluate Funds' condition");
@@ -55,7 +68,7 @@ namespace ExtendedConversations.Core {
       /*
       * ACTIONS
       */
-
+      
       // `TimeSkip` action
       Main.Logger.Log("Declaring 'Time Skip' action");
       tsOp = env.DeclareOp("EffectFunctions", "Time Skip", voidType, new TsOp.EvalDelegate(Actions.TimeSkip));
@@ -67,14 +80,44 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("systemName", stringType);
       tsOp.DeclareInput("includeTravelTime", intType);
 
-      // TODO: Add 'Modify Funds' action
+      // 'Modify Funds' action
+      Main.Logger.Log("Declaring 'Modify Funds' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Modify Funds", voidType, new TsOp.EvalDelegate(Actions.ModifyFunds));
+      tsOp.DeclareInput("operation", intType);
+      tsOp.DeclareInput("amount", intType);
+
+      // 'Set Character Visible' action
+      Main.Logger.Log("Declaring 'Set Characters Visible' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Set Characters Visible", voidType, new TsOp.EvalDelegate(Actions.SetCharactersVisible));
+      tsOp.DeclareInput("isVisible", intType);
+      tsOp.DeclareInput("crewNames", stringType);
+      
+      // 'Start Conversation' action
+      Main.Logger.Log("Declaring 'Start Conversation' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Start Conversation Custom", voidType, new TsOp.EvalDelegate(Actions.StartConversation));
+      tsOp.DeclareInput("conversationId", stringType);
+      tsOp.DeclareInput("groupHeader", stringType);
+      tsOp.DeclareInput("groupSubHeader", stringType);
 
       /*
       * VALUE GETTERS
       */
+      
       // `Get BattleTech String` value getter
       Main.Logger.Log("Declaring 'Get BattleTech String' value getter");
       tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech String", stringType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechString));
+      tsOp.DeclareInput("scope", intType);
+      tsOp.DeclareInput("statName", stringType);
+
+      // `Get BattleTech Int` value getter
+      Main.Logger.Log("Declaring 'Get BattleTech Int' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech Int", intType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechInt));
+      tsOp.DeclareInput("scope", intType);
+      tsOp.DeclareInput("statName", stringType);
+
+      // `Get BattleTech Float` value getter
+      Main.Logger.Log("Declaring 'Get BattleTech Float' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech Float", floatType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechFloat));
       tsOp.DeclareInput("scope", intType);
       tsOp.DeclareInput("statName", stringType);
 
