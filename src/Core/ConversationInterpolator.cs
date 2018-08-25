@@ -64,6 +64,7 @@ namespace ExtendedConversations.Core {
       StatCollection statCollection = SimHelper.GetStatCollection(statType);
 
       if (statCollection.ContainsStatistic(statName)) {
+        // TODO: Make this flexible for ints and float types
         string statValue = statCollection.GetValue<string>(statName);
         return statValue;
       } else {
