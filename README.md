@@ -4,7 +4,20 @@ Extended Conversations is a HBS' BattleTech conversation-based utility mod. It e
 
 Use [ConverseTek - Sim Conversation Editor](https://github.com/CWolfs/ConverseTek) for support with the additional functionality that this mod provides.
 
+## Installation Instructions
+
+* Move into your ModTek `Mods` folder
+* Move the `operations` folder into your `ConverseTek/defs` folder. This will enable all the conditions, actions and value getters from Extended Conversations in ConverseTek.
+
 ## Features
+
+### Dialog Tags
+
+Dialog tags allow you to inject data into your dialog text. 
+
+* `<Stats.Company.[StatName]>` - This allows you to inject any company stat (e.g. `<Stats.Company.MyStatName>`)
+* `<Stats.Commander.[StatName]`> - This allows you to inject any commander stat
+* `<Stats.CurrentSystem.[StatName]`> - This allows you to inject any current system stat
 
 ### Conditions
 
