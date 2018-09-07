@@ -111,5 +111,29 @@ namespace ExtendedConversations.Core {
       SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
       interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
     }
+
+    public static object AddContract(TsEnvironment env, object[] inputs) {
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      string contractId = env.ToString(inputs[0]);
+      string target = env.ToString(inputs[1]);
+      string employer = env.ToString(inputs[2]);
+      string possibleLocation = env.ToString(inputs[3]);
+      bool global = false;
+      string location = null;
+
+      if (possibleLocation != "0") {
+        global = true;
+        location = possibleLocation;
+      }
+      
+      // E.g. AddContract("SimpleBattle_LastMechStanding", "TaurianConcordat", "AuriganRestoration", true, "starsystemdef_Itrom", null, null, false);
+      simulation.AddContract(contractId, target, employer, global, location, null, null, false);
+
+      // Args:  string map, string targetSystem, string mapPath, string encounterGuid, string contractName,
+      //        bool global, string employer, string target, int difficulty, bool carryOverNegotation, string ally = null, int randomSeed = 0)
+      // ReflectionHelper.InvokePrivateMethod(simulation, "AddPredefinedContract", new object[] { 0 });
+
+      return null;
+    }
   }
 }

@@ -19,7 +19,7 @@ namespace ExtendedConversations.Core {
     }
 
     public string Interpolate(string text) {
-      Main.Logger.Log($"[InterpolateStats] text '{text}'");
+      // Main.Logger.Log($"[InterpolateStats] text '{text}'");
 
 			Regex regex = new Regex("\\<.*?\\>");
       MatchCollection matchCollection = regex.Matches(text);
