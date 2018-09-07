@@ -34,6 +34,7 @@ Dialog tags allow you to inject data into your dialog text.
 * `Modify Funds` - This allows you to add, or remove, X amount of cbills from the company funds.
 * `Start Conversation Custom` - This starts a group conversation for you. You specify the conversation id, header and subheader.
 * `Set Characters Visible` - This allows you to show and hide characters in the dropship. You specify the characters in a comma separated list.
+* `Add Contract` - This allows you to add a non-priority contract to the contracts list in the XOs room.
 
 ### Value Getters
 
