@@ -134,20 +134,5 @@ namespace ExtendedConversations.Core {
 
       return null;
     }
-
-    public static object AddPredefinedContract(TsEnvironment env, object[] inputs) {
-      string mapId = env.ToString(inputs[0]);
-      string mapPath = env.ToString(inputs[1]);
-      string target = env.ToString(inputs[2]);
-      string encounterGuid = env.ToString(inputs[3]);
-      string contractId = env.ToString(inputs[4]);
-
-      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-      // Args:  string map, string targetSystem, string mapPath, string encounterGuid, string contractName,
-      //        bool global, string employer, string target, int difficulty, bool carryOverNegotation, string ally = null, int randomSeed = 0)
-      ReflectionHelper.InvokePrivateMethod(simulation, "AddPredefinedContract", new object[] { 0 });
-
-      return null;
-    }
   }
 }
