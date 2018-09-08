@@ -113,7 +113,6 @@ namespace ExtendedConversations.Core {
     }
 
     public static object AddContract(TsEnvironment env, object[] inputs) {
-      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       string contractId = env.ToString(inputs[0]);
       string target = env.ToString(inputs[1]);
       string employer = env.ToString(inputs[2]);
@@ -121,7 +120,11 @@ namespace ExtendedConversations.Core {
       bool global = false;
       string location = null;
 
-      if (possibleLocation != "0") {
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      StarSystem currentSystem = simulation.CurSystem;
+
+      // Only global if the modder has entered in a location for the action, and it's not the same as the current system
+      if ((possibleLocation != "0") && (location != currentSystem.ID)) {
         global = true;
         location = possibleLocation;
       }
@@ -129,9 +132,20 @@ namespace ExtendedConversations.Core {
       // E.g. AddContract("SimpleBattle_LastMechStanding", "TaurianConcordat", "AuriganRestoration", true, "starsystemdef_Itrom", null, null, false);
       simulation.AddContract(contractId, target, employer, global, location, null, null, false);
 
+      return null;
+    }
+
+    public static object AddPredefinedContract(TsEnvironment env, object[] inputs) {
+      string mapId = env.ToString(inputs[0]);
+      string mapPath = env.ToString(inputs[1]);
+      string target = env.ToString(inputs[2]);
+      string encounterGuid = env.ToString(inputs[3]);
+      string contractId = env.ToString(inputs[4]);
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       // Args:  string map, string targetSystem, string mapPath, string encounterGuid, string contractName,
       //        bool global, string employer, string target, int difficulty, bool carryOverNegotation, string ally = null, int randomSeed = 0)
-      // ReflectionHelper.InvokePrivateMethod(simulation, "AddPredefinedContract", new object[] { 0 });
+      ReflectionHelper.InvokePrivateMethod(simulation, "AddPredefinedContract", new object[] { 0 });
 
       return null;
     }
