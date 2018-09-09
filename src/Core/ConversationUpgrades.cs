@@ -99,6 +99,14 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("groupHeader", stringType);
       tsOp.DeclareInput("groupSubHeader", stringType);
 
+      // 'Add Contract' action
+      Main.Logger.Log("Declaring 'Add Contract' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Add Contract", voidType, new TsOp.EvalDelegate(Actions.AddContract));
+      tsOp.DeclareInput("contractId", stringType);
+      tsOp.DeclareInput("target", stringType);
+      tsOp.DeclareInput("employer", stringType);
+      tsOp.DeclareInput("possibleLocation", stringType);
+
       /*
       * VALUE GETTERS
       */

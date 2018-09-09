@@ -111,5 +111,28 @@ namespace ExtendedConversations.Core {
       SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
       interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
     }
+
+    public static object AddContract(TsEnvironment env, object[] inputs) {
+      string contractId = env.ToString(inputs[0]);
+      string target = env.ToString(inputs[1]);
+      string employer = env.ToString(inputs[2]);
+      string possibleLocation = env.ToString(inputs[3]);
+      bool global = false;
+      string location = null;
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      StarSystem currentSystem = simulation.CurSystem;
+
+      // Only global if the modder has entered in a location for the action, and it's not the same as the current system
+      if ((possibleLocation != "0") && (location != currentSystem.ID)) {
+        global = true;
+        location = possibleLocation;
+      }
+      
+      // E.g. AddContract("SimpleBattle_LastMechStanding", "TaurianConcordat", "AuriganRestoration", true, "starsystemdef_Itrom", null, null, false);
+      simulation.AddContract(contractId, target, employer, global, location, null, null, false);
+
+      return null;
+    }
   }
 }
