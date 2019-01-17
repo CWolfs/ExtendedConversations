@@ -98,7 +98,7 @@ namespace ExtendedConversations.Core {
       
       try {
         conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
-      } catch (KeyNotFoundException e) {
+      } catch (KeyNotFoundException) {
         Main.Logger.Log($"[StartConversation] Conversation with id '{conversationId}' not found. Check the conversation id is correct or/and if the conversation has loaded correctly.");
       }
 
