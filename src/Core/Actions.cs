@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Harmony;
 
 using BattleTech;
@@ -93,10 +94,16 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      Conversation conversation = null;
       
-      Conversation conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
+      try {
+        conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
+      } catch (KeyNotFoundException e) {
+        Main.Logger.Log($"[StartConversation] Conversation with id '{conversationId}' not found. Check the conversation id is correct or/and if the conversation has loaded correctly.");
+      }
+
       if (conversation == null) {
-        Main.Logger.Log($"[StartConversation] Conversation is null for id {conversationId}");
+        Main.Logger.Log($"[StartConversation] Conversation is null for id '{conversationId}'");
       } else {
         simulation.ConversationManager.OneOnOneDialogInterrupt();
         UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader));
