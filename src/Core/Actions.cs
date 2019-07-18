@@ -136,8 +136,13 @@ namespace ExtendedConversations.Core {
         location = possibleLocation;
       }
       
-      // E.g. AddContract("SimpleBattle_LastMechStanding", "TaurianConcordat", "AuriganRestoration", true, "starsystemdef_Itrom", null, null, false);
-      simulation.AddContract(contractId, target, employer, global, location, null, null, false);
+      SimGameState.AddContractData contractData = new SimGameState.AddContractData();
+      contractData.ContractName = contractId;   // "SimpleBattle_LastMechStanding"
+      contractData.Target = target;             // "TaurianConcordat"
+      contractData.Employer = employer;         // "AuriganRestoration"
+      contractData.IsGlobal = global;           // true
+      contractData.TargetSystem = location;     // "starsystemdef_Itrom"
+      simulation.AddContract(contractData);
 
       return null;
     }
