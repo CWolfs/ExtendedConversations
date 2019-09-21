@@ -1,17 +1,14 @@
-using UnityEngine;
-using System;
 using Harmony;
-using TScript;
-using HBS.Logging;
 
-using ExtendedConversations;
+using TScript;
+
 using ExtendedConversations.Core;
 
 namespace ExtendedConversations {
-  [HarmonyPatch(typeof(TsEnvironment), MethodType.Constructor)]
+  [HarmonyPatch(typeof(TScript.Ops.BattleTech), "Declare")]
   public class TsEnvironmentPatch {
-    static void Postfix(TsEnvironment __instance) {
-      ConversationUpgrades.Declare(__instance);
+    static void Postfix(TScript.Ops.BattleTech __instance, TsEnvironment env) {
+      ConversationUpgrades.Declare(env);
     }
   }
 }
