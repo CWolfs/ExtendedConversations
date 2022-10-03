@@ -21,17 +21,17 @@ namespace ExtendedConversations.Core {
     public string Interpolate(string text) {
       // Main.Logger.Log($"[InterpolateStats] text '{text}'");
 
-			Regex regex = new Regex("\\<.*?\\>");
+      Regex regex = new Regex("\\<.*?\\>");
       MatchCollection matchCollection = regex.Matches(text);
-			while (matchCollection.Count > 0) {
-				Match match = matchCollection[0];
-				string value = match.Value;
-				string expression = null;
-				if (value.Length > 2) {
-					expression = value.Substring(1, value.Length - 2).Trim();
-				}
-				int index = match.Index;
-				int length = match.Length;
+      while (matchCollection.Count > 0) {
+        Match match = matchCollection[0];
+        string value = match.Value;
+        string expression = null;
+        if (value.Length > 2) {
+          expression = value.Substring(1, value.Length - 2).Trim();
+        }
+        int index = match.Index;
+        int length = match.Length;
 
         string[] lookups = expression.Split('.');
         string actionType = lookups[0].ToLower();
@@ -39,8 +39,6 @@ namespace ExtendedConversations.Core {
         string interpolatedText = "";
         if (actionType.ToLower() == "stats") {
           interpolatedText = this.InterpolateStats(text, lookups);
-        } else {
-          Main.Logger.LogError($"[InterpolateStats] Unknown interpolation action of {actionType}");
         }
 
         text = text.Remove(index, length).Insert(index, interpolatedText);
@@ -69,7 +67,7 @@ namespace ExtendedConversations.Core {
       } else {
         Main.Logger.LogError($"[InterpolateStats] Stat '{statName}' does not exist for stat collection '{statType}'");
         return $"[InterpolateStats] Stat {statName} does not exist for stat collection {statType}";
-      }	
+      }
     }
   }
 }

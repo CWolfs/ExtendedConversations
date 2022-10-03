@@ -1,0 +1,21 @@
+{
+  "key": "Trigger Custom Animation",
+  "label": "Trigger a custom animation on crew member",
+  "view": ["label", "inputs"],
+  "scope": "action",
+  "category": "primary",
+  "inputs": [
+    {
+      "label": "Crew Name",
+      "types": ["operation", "string"],
+      "viewLabel": "'{value}'",
+      "tooltip": "Dropship crew name (e.g. Darius, Sumire)"
+    },
+    {
+      "label": "Animation Name",
+      "types": ["operation", "string"],
+      "viewLabel": "and animation name '{value}'",
+      "tooltip": "Animation name (e.g. MyCustomAnimation)"
+    }
+  ]
+}

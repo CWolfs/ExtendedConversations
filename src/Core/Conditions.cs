@@ -29,13 +29,13 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       int operation = env.ToInt(inputs[2]);
       string compareValue = env.ToString(inputs[3]);
-      Main.Logger.Log($"[EvaluateBattleTechString] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}");
+      Main.Logger.Log($"[EvaluateBattleTechString] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}'");
 
       StatCollection statCollection = SimHelper.GetStatCollection(statScope);
 
       if (statCollection.ContainsStatistic(statName)) {
         string stat = statCollection.GetValue<string>(statName);
-        
+
         switch (operation) {
           case 1: // equal to
             return (stat == compareValue);
@@ -55,13 +55,13 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       int operation = env.ToInt(inputs[2]);
       int compareValue = env.ToInt(inputs[3]);
-      Main.Logger.Log($"[EvaluateBattleTechInt] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}");
+      Main.Logger.Log($"[EvaluateBattleTechInt] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}'");
 
       StatCollection statCollection = SimHelper.GetStatCollection(statScope);
 
       if (statCollection.ContainsStatistic(statName)) {
         int stat = statCollection.GetValue<int>(statName);
-        
+
         switch (operation) {
           case 1: // less than
             return (stat < compareValue);
@@ -87,13 +87,13 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       int operation = env.ToInt(inputs[2]);
       float compareValue = env.ToFloat(inputs[3]);
-      Main.Logger.Log($"[EvaluateBattleTechFloat] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}");
+      Main.Logger.Log($"[EvaluateBattleTechFloat] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}'");
 
       StatCollection statCollection = SimHelper.GetStatCollection(statScope);
 
       if (statCollection.ContainsStatistic(statName)) {
         float stat = statCollection.GetValue<float>(statName);
-        
+
         switch (operation) {
           case 1: // less than
             return (stat < compareValue);

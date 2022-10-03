@@ -1,18 +1,16 @@
 using UnityEngine;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Harmony;
 
 using BattleTech;
 using BattleTech.UI;
+
 using TScript;
-using TScript.Ops;
-using HBS.Logging;
-using HBS.Collections;
+
 using isogame;
 
-using ExtendedConversations;
 using ExtendedConversations.Utils;
 
 namespace ExtendedConversations.Core {
@@ -45,11 +43,11 @@ namespace ExtendedConversations.Core {
         ReflectionHelper.SetReadOnlyProperty(simulation, "CurSystem", systemNode.System);
         simulation.SetCurrentSystem(systemNode.System, true, false);
       }
-      
+
       Main.Logger.Log($"[SetCurrentSystem] Travel complete");
       return null;
     }
-    
+
     public static object ModifyFunds(TsEnvironment env, object[] inputs) {
       int operation = env.ToInt(inputs[0]);
       int amount = env.ToInt(inputs[1]);
@@ -65,26 +63,26 @@ namespace ExtendedConversations.Core {
         Main.Logger.LogError($"[ModifyFunds] Unknown operation type of '{operation}'");
         return null;
       }
-      
+
       Main.Logger.Log($"[ModifyFunds] Funds modified.");
       return null;
     }
 
     public static object SetCharactersVisible(TsEnvironment env, object[] inputs) {
-        bool isVisible = env.ToBool(inputs[0]);
-        string crewNamesGrouped = env.ToString(inputs[1]);
-        Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
-        
-        string[] crewNames = crewNamesGrouped.Split(',');
-        
-        foreach (string crewName in crewNames) {
-          SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
-          SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-          simulation.SetCharacterVisibility(character, isVisible);
-        }
+      bool isVisible = env.ToBool(inputs[0]);
+      string crewNamesGrouped = env.ToString(inputs[1]);
+      Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
 
-        Main.Logger.Log($"[SetCharactersVisible] Finished");
-        return null;
+      string[] crewNames = crewNamesGrouped.Split(',');
+
+      foreach (string crewName in crewNames) {
+        SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
+        SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+        simulation.SetCharacterVisibility(character, isVisible);
+      }
+
+      Main.Logger.Log($"[SetCharactersVisible] Finished");
+      return null;
     }
 
     public static object StartConversation(TsEnvironment env, object[] inputs) {
@@ -95,7 +93,7 @@ namespace ExtendedConversations.Core {
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       Conversation conversation = null;
-      
+
       try {
         conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
       } catch (KeyNotFoundException) {
@@ -135,7 +133,7 @@ namespace ExtendedConversations.Core {
         global = true;
         location = possibleLocation;
       }
-      
+
       SimGameState.AddContractData contractData = new SimGameState.AddContractData();
       contractData.ContractName = contractId;   // "SimpleBattle_LastMechStanding"
       contractData.Target = target;             // "TaurianConcordat"
@@ -143,6 +141,22 @@ namespace ExtendedConversations.Core {
       contractData.IsGlobal = global;           // true
       contractData.TargetSystem = location;     // "starsystemdef_Itrom"
       simulation.AddContract(contractData);
+
+      return null;
+    }
+
+    public static object TriggerCustomAnimation(TsEnvironment env, object[] inputs) {
+      string crewName = env.ToString(inputs[0]);
+      string animationName = env.ToString(inputs[1]);
+      Main.Logger.Log($"[TriggerCustomAnimation] Crewname '{crewName}' will start animation '{animationName}'.");
+
+      AnimationClip animationClip = AssetBundleLoader.GetAsset<AnimationClip>("designer-assets-bundle", animationName);
+      if (animationClip == null) {
+        Main.Logger.LogError("[Actions.TriggerCustomAnimation] Attempted to trigger animation '{animationName}' on '{crewName}' but animation could not be found.");
+        return null;
+      } else {
+        Main.Logger.Log("[Actions.TriggerCustomAnimation] Attempted to trigger animation '{animationName}' on '{crewName}'. Found animation!");
+      }
 
       return null;
     }
