@@ -112,6 +112,7 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Trigger Custom Animation", voidType, new TsOp.EvalDelegate(Actions.TriggerCustomAnimation));
       tsOp.DeclareInput("crewName", stringType);
       tsOp.DeclareInput("animationName", stringType);
+      tsOp.DeclareInput("enableRootMotion", intType);
 
       /*
       * VALUE GETTERS

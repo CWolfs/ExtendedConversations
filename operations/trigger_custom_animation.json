@@ -16,6 +16,23 @@
       "types": ["operation", "string"],
       "viewLabel": "and animation name '{value}'",
       "tooltip": "Animation name (e.g. MyCustomAnimation)"
+    },
+    {
+      "label": "Enable Root Motion",
+      "types": ["int"],
+      "values": [
+        {
+          "viewlabel": "with Root Motion disabled",
+          "text": "Disabled",
+          "value": 0
+        },
+        {
+          "viewlabel": "with Root Motion enabled",
+          "text": "Enabled",
+          "value": 1
+        }
+      ],
+      "tooltip": "Root motion allows the animation to control the position of the character."
     }
   ]
 }

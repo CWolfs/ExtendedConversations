@@ -14,6 +14,8 @@ using isogame;
 
 using ExtendedConversations.Utils;
 
+using Harmony;
+
 namespace ExtendedConversations.Core {
   public class Actions {
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
@@ -152,7 +154,9 @@ namespace ExtendedConversations.Core {
         string goName = modelMesh.gameObject.name;
 
         SkinnedMeshRenderer mimicSkinnedMeshRenderer = modelMesh.GetComponent<SkinnedMeshRenderer>();
-        SkinnedMeshRenderer originalSkinnedMeshRenderer = originalCharacter.transform.Find(goName).GetComponent<SkinnedMeshRenderer>();
+        Main.Logger.Log($"[DressCharacter] Investigating child with goName '{goName}' on go '{originalCharacter.name}'");
+        Main.Logger.Log($"[DressCharacter] Found child with goName '{goName}' and name is: " + originalCharacter.transform.Find(goName).gameObject.name);
+        SkinnedMeshRenderer originalSkinnedMeshRenderer = originalCharacter.transform.Find(goName).gameObject.GetComponent<SkinnedMeshRenderer>();
 
         mimicSkinnedMeshRenderer.sharedMaterial = originalSkinnedMeshRenderer.sharedMaterial;
       }
@@ -171,25 +175,79 @@ namespace ExtendedConversations.Core {
       string animationName = env.ToString(inputs[1]);
       Main.Logger.Log($"[TriggerCustomAnimation] Crewname '{crewName}' will start animation '{animationName}'.");
 
+      bool enableRootMotion = env.ToBool(inputs[2]);
+
       GameObject crewMemberPrefab = AssetBundleLoader.GetAsset<GameObject>("ec-assets-bundle", $"EC" + crewName);
+      RuntimeAnimatorController runtimeAnimatorController = AssetBundleLoader.GetAsset<RuntimeAnimatorController>("ec-assets-bundle", $"{animationName}TestAnimationController");
+
+      if (runtimeAnimatorController == null) {
+        Main.Logger.LogError($"[Actions.TriggerCustomAnimation] '{animationName}TestAnimationController' was not found in bundle");
+        return null;
+      }
+
       if (crewMemberPrefab == null) {
         Main.Logger.LogError($"[Actions.TriggerCustomAnimation] 'EC{crewName}' was not found in bundle");
         return null;
-      } else {
-        SimGameCameraController cameraController = UnityGameInstance.Instance.Game.Simulation.CameraController;
-        List<SimGameCharacter> characterList = cameraController.CurrentRoomProps.CharacterList;
+      }
 
-        foreach (SimGameCharacter character in characterList) {
-          if (character.character.ToString().ToLower().Contains(crewName.ToLower())) {
-            Animator animator = character.gameObject.GetComponent<Animator>();
-            if (animator != null) {
-              GameObject crewMemberGo = GameObject.Instantiate(crewMemberPrefab, character.gameObject.transform.position, character.gameObject.transform.rotation, character.gameObject.transform.parent);
-              crewMemberGo.transform.localScale = new Vector3(3.5f, 3.5f, 3.5f);
-              crewMemberGo.name = crewMemberGo.name.Replace("(Clone", "");
-              character.gameObject.SetActive(false);
+      SimGameCameraController cameraController = UnityGameInstance.Instance.Game.Simulation.CameraController;
+      List<SimGameCharacter> characterList = cameraController.CurrentRoomProps.CharacterList;
 
-              DressCharacter(character.gameObject, crewMemberGo);
+      bool found = false;
+      foreach (SimGameCharacter character in characterList) {
+        if (character.character.ToString().ToLower().Contains(crewName.ToLower())) {
+          Animator animator = character.gameObject.GetComponent<Animator>();
+          if (animator != null) {
+            found = true;
+            GameObject crewMemberGo = GameObject.Instantiate(crewMemberPrefab, character.gameObject.transform.position, character.gameObject.transform.rotation, character.gameObject.transform.parent);
+            crewMemberGo.transform.localScale = new Vector3(3.4f, 3.4f, 3.4f);
+
+            CapsuleCollider originalCapsuleCollider = character.gameObject.GetComponent<CapsuleCollider>();
+            CapsuleCollider capsuleCollider = crewMemberGo.AddComponent<CapsuleCollider>();
+            capsuleCollider.center = originalCapsuleCollider.center;
+            capsuleCollider.radius = originalCapsuleCollider.radius;
+            capsuleCollider.height = originalCapsuleCollider.height;
+            capsuleCollider.direction = originalCapsuleCollider.direction;
+            capsuleCollider.contactOffset = originalCapsuleCollider.contactOffset;
+
+            crewMemberGo.name = crewMemberGo.name.Replace("(Clone)", "");
+            if (character.gameObject.activeSelf) character.gameObject.SetActive(false);
+
+            DressCharacter(character.gameObject, crewMemberGo);
+            Animator currentAnimator = crewMemberGo.GetComponent<Animator>();
+            currentAnimator.applyRootMotion = enableRootMotion;
+            currentAnimator.runtimeAnimatorController = runtimeAnimatorController;
+          }
+        }
+      }
+
+      if (!found) {
+        // Expand search for valid character to all other rooms and pick the first found
+        Dictionary<SimGameState.SimGameCharacterType, List<SimGameCharacter>> characters = (Dictionary<SimGameState.SimGameCharacterType, List<SimGameCharacter>>)AccessTools.Field(typeof(SimGameCharacter), "charDict").GetValue(null);
+        foreach (List<SimGameCharacter> characterInstances in characters.Values) {
+          foreach (SimGameCharacter character in characterInstances) {
+            if (character.character.ToString().ToLower().Contains(crewName.ToLower())) {
+              Animator animator = character.gameObject.GetComponent<Animator>();
+              if (animator != null) {
+                GameObject crewMemberGo = GameObject.Instantiate(crewMemberPrefab, character.gameObject.transform.position, character.gameObject.transform.rotation, character.gameObject.transform.parent);
+                crewMemberGo.transform.localScale = new Vector3(3.4f, 3.4f, 3.4f);
+
+                CapsuleCollider originalCapsuleCollider = character.gameObject.GetComponent<CapsuleCollider>();
+                CapsuleCollider capsuleCollider = crewMemberGo.AddComponent<CapsuleCollider>();
+                capsuleCollider.center = originalCapsuleCollider.center;
+                capsuleCollider.radius = originalCapsuleCollider.radius;
+                capsuleCollider.height = originalCapsuleCollider.height;
+                capsuleCollider.direction = originalCapsuleCollider.direction;
+                capsuleCollider.contactOffset = originalCapsuleCollider.contactOffset;
+
+                crewMemberGo.name = crewMemberGo.name.Replace("(Clone)", "");
+                character.gameObject.SetActive(false);
+
+                DressCharacter(character.gameObject, crewMemberGo);
+                crewMemberGo.GetComponent<Animator>().runtimeAnimatorController = runtimeAnimatorController;
+              }
             }
+            break;
           }
         }
       }
