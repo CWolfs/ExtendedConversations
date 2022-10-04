@@ -42,6 +42,7 @@ namespace ExtendedConversations {
     public static void Init(string modDirectory, string modSettings) {
       try {
         InitLogger(modDirectory);
+        LoadAssetBundles();
 
         Logger.Log("Loading ExtendedConversations settings");
         settings = JsonConvert.DeserializeObject<Settings>(modSettings);

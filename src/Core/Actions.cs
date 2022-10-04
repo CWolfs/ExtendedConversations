@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Animations;
 
 using System;
 using System.Collections;
@@ -145,19 +146,82 @@ namespace ExtendedConversations.Core {
       return null;
     }
 
+    private static void DressCharacter(GameObject originalCharacter, GameObject mimicCharacter) {
+      Transform modelTransform = mimicCharacter.transform.GetChild(0);
+      foreach (Transform modelMesh in modelTransform) {
+        string goName = modelMesh.gameObject.name;
+
+        SkinnedMeshRenderer mimicSkinnedMeshRenderer = modelMesh.GetComponent<SkinnedMeshRenderer>();
+        SkinnedMeshRenderer originalSkinnedMeshRenderer = originalCharacter.transform.Find(goName).GetComponent<SkinnedMeshRenderer>();
+
+        mimicSkinnedMeshRenderer.sharedMaterial = originalSkinnedMeshRenderer.sharedMaterial;
+      }
+    }
+
     public static object TriggerCustomAnimation(TsEnvironment env, object[] inputs) {
       string crewName = env.ToString(inputs[0]);
+      if (crewName == null || crewName == "" || crewName.Length < 2) {
+        Main.Logger.LogError($"[Actions.TriggerCustomAnimation] Crew name '{crewName}' is null, empty or invalid");
+        return null;
+      }
+
+      crewName = crewName.ToLower();
+      crewName = crewName[0].ToString().ToUpper() + crewName.Substring(1);
+
       string animationName = env.ToString(inputs[1]);
       Main.Logger.Log($"[TriggerCustomAnimation] Crewname '{crewName}' will start animation '{animationName}'.");
 
-      AnimationClip animationClip = AssetBundleLoader.GetAsset<AnimationClip>("designer-assets-bundle", animationName);
-      if (animationClip == null) {
-        Main.Logger.LogError("[Actions.TriggerCustomAnimation] Attempted to trigger animation '{animationName}' on '{crewName}' but animation could not be found.");
+      GameObject crewMemberPrefab = AssetBundleLoader.GetAsset<GameObject>("ec-assets-bundle", $"EC" + crewName);
+      if (crewMemberPrefab == null) {
+        Main.Logger.LogError($"[Actions.TriggerCustomAnimation] 'EC{crewName}' was not found in bundle");
         return null;
       } else {
-        Main.Logger.Log("[Actions.TriggerCustomAnimation] Attempted to trigger animation '{animationName}' on '{crewName}'. Found animation!");
+        SimGameCameraController cameraController = UnityGameInstance.Instance.Game.Simulation.CameraController;
+        List<SimGameCharacter> characterList = cameraController.CurrentRoomProps.CharacterList;
+
+        foreach (SimGameCharacter character in characterList) {
+          if (character.character.ToString().ToLower().Contains(crewName.ToLower())) {
+            Animator animator = character.gameObject.GetComponent<Animator>();
+            if (animator != null) {
+              GameObject crewMemberGo = GameObject.Instantiate(crewMemberPrefab, character.gameObject.transform.position, character.gameObject.transform.rotation, character.gameObject.transform.parent);
+              crewMemberGo.transform.localScale = new Vector3(3.5f, 3.5f, 3.5f);
+              crewMemberGo.name = crewMemberGo.name.Replace("(Clone", "");
+              character.gameObject.SetActive(false);
+
+              DressCharacter(character.gameObject, crewMemberGo);
+            }
+          }
+        }
       }
 
+      // AnimationClip animationClip = AssetBundleLoader.GetAsset<AnimationClip>("ec-assets-bundle", animationName);
+      /*
+      RuntimeAnimatorController runtimeAnimationController = AssetBundleLoader.GetAsset<RuntimeAnimatorController>("ec-assets-bundle", $"{animationName}RuntimeController");
+      if (runtimeAnimationController == null) {
+        Main.Logger.LogError($"[Actions.TriggerCustomAnimation] Attempted to trigger animation '{animationName}' on '{crewName}' but animation controller could not be found.");
+        return null;
+      } else {
+        Main.Logger.Log($"[Actions.TriggerCustomAnimation] Attempted to trigger animation '{animationName}' on '{crewName}'. Found animation controller!");
+        SimGameCameraController cameraController = UnityGameInstance.Instance.Game.Simulation.CameraController;
+        List<SimGameCharacter> characterList = cameraController.CurrentRoomProps.CharacterList;
+        foreach (SimGameCharacter character in characterList) {
+          if (character.character.ToString().ToLower().Contains(crewName.ToLower())) {
+            Animator animator = character.gameObject.GetComponent<Animator>();
+
+            if (animator != null) {
+              Main.Logger.Log("[Actions.TriggerCustomAnimation] GO character name is: " + character.gameObject.name);
+              // animator.enabled = false;
+              animator.runtimeAnimatorController = runtimeAnimationController;
+
+              // Animation animation = character.gameObject.AddComponent<Animation>();
+              // animation.AddClip(animationClip, animationName);
+              // animation.clip = animationClip;
+              // animation.Play(animationName);
+            }
+          }
+        }
+      }
+    */
       return null;
     }
   }
