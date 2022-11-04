@@ -17,7 +17,7 @@ using ExtendedConversations.Utils;
 
 namespace ExtendedConversations.Core {
   public class Actions {
-    public static bool MovedKameraInLeopard = false;
+    public static bool MovedKameraInLeopardCommandCenter = false;
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
@@ -77,17 +77,51 @@ namespace ExtendedConversations.Core {
       string crewNamesGrouped = env.ToString(inputs[1]);
       Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
 
+      SimGameState simGameState = UnityGameInstance.Instance.Game.Simulation;
       string[] crewNames = crewNamesGrouped.Split(',');
 
       // Fix for Leopard Kamea/Alex structure being wrong
-      if (!MovedKameraInLeopard) {
-        if (UnityGameInstance.Instance.Game.Simulation.CurDropship == DropshipType.Leopard && UnityGameInstance.Instance.Game.Simulation.CurRoomState == DropshipLocation.CMD_CENTER) {
+      if (!MovedKameraInLeopardCommandCenter) {
+        if (simGameState.CurDropship == DropshipType.Leopard && simGameState.CurRoomState == DropshipLocation.CMD_CENTER) {
           if (crewNamesGrouped.Contains("Kamea") || crewNamesGrouped.Contains("Alexander")) {
             // Move Kamea GO out of Alex
             Main.Logger.Log("[SetCharactersVisible] Moving Kamera so she can be enabled on her own");
             Transform kameraTransform = GameObject.Find("LeopardHub").transform.Find("chrPrfCrew_alexander/chrPrfCrew_kamea (2)");
-            kameraTransform.parent = kameraTransform.parent.parent;
-            MovedKameraInLeopard = true;
+
+            GameObject kameaContainer = new GameObject("Kamea");
+            kameaContainer.transform.parent = kameraTransform.parent.parent;
+
+            kameraTransform.parent = kameaContainer.transform;
+            MovedKameraInLeopardCommandCenter = true;
+          }
+        }
+      }
+
+      if (simGameState.CurRoomState == DropshipLocation.CONFERENCE) {
+        if (simGameState.CameraController.flashPoint == simGameState.CameraController.CurrentRoomProps) {
+          if (crewNamesGrouped.Contains("Kamea") || crewNamesGrouped.Contains("Alexander")) {
+            // Check if Kamea and Alex exist, if not - copy them from another Conferernce Room
+            // GameObject flashpointConferenceRoomGO = GameObject.Find("FlashpointConference");
+            // bool charactersExist = flashpointConferenceRoomGO.transform.Find("Kamea") != null;
+
+            // if (!charactersExist) {
+            //   GameObject originalKamea = GameObject.Find("LeopardConference").transform.Find("Kamea").gameObject;
+            //   GameObject originalAlexander = GameObject.Find("LeopardConference").transform.Find("Alexander").gameObject;
+
+            //   GameObject copiedKamea = GameObject.Instantiate(originalKamea, flashpointConferenceRoomGO.transform);
+            //   copiedKamea.name = "Kamea";
+            //   copiedKamea.transform.position = new Vector3(copiedKamea.transform.position.x, -20.317f, copiedKamea.transform.position.z);
+            //   foreach (Transform child in copiedKamea.transform) {
+            //     child.gameObject.SetActive(true);
+            //   }
+
+            //   GameObject copiedAlexander = GameObject.Instantiate(originalAlexander, flashpointConferenceRoomGO.transform);
+            //   copiedAlexander.name = "Alexander";
+            //   copiedAlexander.transform.position = new Vector3(copiedAlexander.transform.position.x, -20.317f, copiedAlexander.transform.position.z);
+            //   foreach (Transform child in copiedAlexander.transform) {
+            //     child.gameObject.SetActive(true);
+            //   }
+            // }
           }
         }
       }
