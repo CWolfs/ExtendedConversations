@@ -17,6 +17,8 @@ using ExtendedConversations.Utils;
 
 namespace ExtendedConversations.Core {
   public class Actions {
+    public static bool MovedKameraInLeopard = false;
+
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
       Main.Logger.Log($"[TimeSkip] Triggered with days to skip '{daysToSkip}'");
@@ -45,11 +47,11 @@ namespace ExtendedConversations.Core {
         ReflectionHelper.SetReadOnlyProperty(simulation, "CurSystem", systemNode.System);
         simulation.SetCurrentSystem(systemNode.System, true, false);
       }
-      
+
       Main.Logger.Log($"[SetCurrentSystem] Travel complete");
       return null;
     }
-    
+
     public static object ModifyFunds(TsEnvironment env, object[] inputs) {
       int operation = env.ToInt(inputs[0]);
       int amount = env.ToInt(inputs[1]);
@@ -65,26 +67,39 @@ namespace ExtendedConversations.Core {
         Main.Logger.LogError($"[ModifyFunds] Unknown operation type of '{operation}'");
         return null;
       }
-      
+
       Main.Logger.Log($"[ModifyFunds] Funds modified.");
       return null;
     }
 
     public static object SetCharactersVisible(TsEnvironment env, object[] inputs) {
-        bool isVisible = env.ToBool(inputs[0]);
-        string crewNamesGrouped = env.ToString(inputs[1]);
-        Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
-        
-        string[] crewNames = crewNamesGrouped.Split(',');
-        
-        foreach (string crewName in crewNames) {
-          SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
-          SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
-          simulation.SetCharacterVisibility(character, isVisible);
-        }
+      bool isVisible = env.ToBool(inputs[0]);
+      string crewNamesGrouped = env.ToString(inputs[1]);
+      Main.Logger.Log($"[SetCharactersVisible] crewnames '{crewNamesGrouped}' will be visible status {isVisible}.");
 
-        Main.Logger.Log($"[SetCharactersVisible] Finished");
-        return null;
+      string[] crewNames = crewNamesGrouped.Split(',');
+
+      // Fix for Leopard Kamea/Alex structure being wrong
+      if (!MovedKameraInLeopard) {
+        if (UnityGameInstance.Instance.Game.Simulation.CurDropship == DropshipType.Leopard && UnityGameInstance.Instance.Game.Simulation.CurRoomState == DropshipLocation.CMD_CENTER) {
+          if (crewNamesGrouped.Contains("Kamea") || crewNamesGrouped.Contains("Alexander")) {
+            // Move Kamea GO out of Alex
+            Main.Logger.Log("[SetCharactersVisible] Moving Kamera so she can be enabled on her own");
+            Transform kameraTransform = GameObject.Find("LeopardHub").transform.Find("chrPrfCrew_alexander/chrPrfCrew_kamea (2)");
+            kameraTransform.parent = kameraTransform.parent.parent;
+            MovedKameraInLeopard = true;
+          }
+        }
+      }
+
+      foreach (string crewName in crewNames) {
+        SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
+        SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+        simulation.SetCharacterVisibility(character, isVisible);
+      }
+
+      Main.Logger.Log($"[SetCharactersVisible] Finished");
+      return null;
     }
 
     public static object StartConversation(TsEnvironment env, object[] inputs) {
@@ -95,7 +110,7 @@ namespace ExtendedConversations.Core {
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       Conversation conversation = null;
-      
+
       try {
         conversation = simulation.DataManager.SimGameConversations.Get(conversationId);
       } catch (KeyNotFoundException) {
@@ -135,7 +150,7 @@ namespace ExtendedConversations.Core {
         global = true;
         location = possibleLocation;
       }
-      
+
       SimGameState.AddContractData contractData = new SimGameState.AddContractData();
       contractData.ContractName = contractId;   // "SimpleBattle_LastMechStanding"
       contractData.Target = target;             // "TaurianConcordat"
