@@ -99,35 +99,6 @@ namespace ExtendedConversations.Core {
         }
       }
 
-      if (simGameState.CurRoomState == DropshipLocation.CONFERENCE) {
-        if (simGameState.CameraController.flashPoint == simGameState.CameraController.CurrentRoomProps) {
-          if (crewNamesGrouped.Contains("Kamea") || crewNamesGrouped.Contains("Alexander")) {
-            // Check if Kamea and Alex exist, if not - copy them from another Conferernce Room
-            // GameObject flashpointConferenceRoomGO = GameObject.Find("FlashpointConference");
-            // bool charactersExist = flashpointConferenceRoomGO.transform.Find("Kamea") != null;
-
-            // if (!charactersExist) {
-            //   GameObject originalKamea = GameObject.Find("LeopardConference").transform.Find("Kamea").gameObject;
-            //   GameObject originalAlexander = GameObject.Find("LeopardConference").transform.Find("Alexander").gameObject;
-
-            //   GameObject copiedKamea = GameObject.Instantiate(originalKamea, flashpointConferenceRoomGO.transform);
-            //   copiedKamea.name = "Kamea";
-            //   copiedKamea.transform.position = new Vector3(copiedKamea.transform.position.x, -20.317f, copiedKamea.transform.position.z);
-            //   foreach (Transform child in copiedKamea.transform) {
-            //     child.gameObject.SetActive(true);
-            //   }
-
-            //   GameObject copiedAlexander = GameObject.Instantiate(originalAlexander, flashpointConferenceRoomGO.transform);
-            //   copiedAlexander.name = "Alexander";
-            //   copiedAlexander.transform.position = new Vector3(copiedAlexander.transform.position.x, -20.317f, copiedAlexander.transform.position.z);
-            //   foreach (Transform child in copiedAlexander.transform) {
-            //     child.gameObject.SetActive(true);
-            //   }
-            // }
-          }
-        }
-      }
-
       foreach (string crewName in crewNames) {
         SimGameState.SimGameCharacterType character = (SimGameState.SimGameCharacterType)Enum.Parse(typeof(SimGameState.SimGameCharacterType), crewName, true);
         SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
