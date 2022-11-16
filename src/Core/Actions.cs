@@ -18,6 +18,7 @@ using ExtendedConversations.Utils;
 namespace ExtendedConversations.Core {
   public class Actions {
     public static bool MovedKameraInLeopardCommandCenter = false;
+    public static bool ForceNextIsInFlashpointCheckFalse = false;
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
@@ -140,6 +141,7 @@ namespace ExtendedConversations.Core {
       string conversationId = env.ToString(inputs[0]);
       string groupHeader = env.ToString(inputs[1]);
       string groupSubHeader = env.ToString(inputs[2]);
+      bool forceNonFPConferenceRoom = (inputs.Length == 4) ? env.ToBool(inputs[3]) : false;
       Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
@@ -158,6 +160,8 @@ namespace ExtendedConversations.Core {
         UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader));
         Main.Logger.Log($"[StartConversation] Conversaton queued for immediate start.");
       }
+
+      ForceNextIsInFlashpointCheckFalse = forceNonFPConferenceRoom;
 
       return null;
     }
