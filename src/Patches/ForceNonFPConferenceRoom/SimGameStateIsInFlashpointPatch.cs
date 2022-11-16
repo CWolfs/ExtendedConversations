@@ -9,6 +9,7 @@ namespace ExtendedConversations {
   public class SimGameStateIsInFlashpointPatch {
     static void Postfix(SimGameState __instance, ref bool __result) {
       if (Actions.ForceNextIsInFlashpointCheckFalse) {
+        Main.Logger.Log("[SimGameStateIsInFlashpointPatch] Forcing to use non-FP conference room");
         __result = false;
       }
     }

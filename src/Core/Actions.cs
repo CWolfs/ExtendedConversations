@@ -19,6 +19,7 @@ namespace ExtendedConversations.Core {
   public class Actions {
     public static bool MovedKameraInLeopardCommandCenter = false;
     public static bool ForceNextIsInFlashpointCheckFalse = false;
+    public static Conversation ActiveConversation = null;
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
@@ -162,6 +163,7 @@ namespace ExtendedConversations.Core {
       }
 
       ForceNextIsInFlashpointCheckFalse = forceNonFPConferenceRoom;
+      ActiveConversation = conversation;
 
       return null;
     }
