@@ -172,5 +172,32 @@ namespace ExtendedConversations.Core {
 
       return null;
     }
+
+    /*
+      Both flashpointId and systemId can be null/empty.
+      Vanilla code for flashpoints handles by:
+        - flashpointId = null/empty will pick a random non-completed flashpoint
+        - systemId = null/empty will pick a random system
+    */
+    public static object AddFlashpoint(TsEnvironment env, object[] inputs) {
+      string flashpointId = env.ToString(inputs[0]);
+      string systemId = env.ToString(inputs[1]);
+
+      Main.Logger.Log($"[AddFlashpoint] Received flashpointId '{flashpointId}' and systemId '{systemId}'");
+
+      if (flashpointId == "0") flashpointId = null;
+      if (systemId == "0") systemId = null;
+
+      if (!string.IsNullOrEmpty(systemId) && !systemId.StartsWith("starsystemdef_") && !systemId.StartsWith("local")) {
+        systemId = $"starsystemdef_{systemId}";
+      }
+
+      Main.Logger.Log($"[AddFlashpoint] Using flashpointId '{flashpointId}' and systemId '{systemId}'");
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      simulation.GenerateFlashpointCommand(flashpointId, systemId);
+
+      return null;
+    }
   }
 }
