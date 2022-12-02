@@ -38,37 +38,37 @@ namespace ExtendedConversations.Core {
       // `Evaluate BattleTech String` condition
       Main.Logger.Log("Declaring 'Evaluate BattleTech String' condition");
       tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech String", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechString));
-			tsOp.DeclareInput("scope", SimGameScopeType);
-			tsOp.DeclareInput("param", stringType);
+      tsOp.DeclareInput("scope", SimGameScopeType);
+      tsOp.DeclareInput("param", stringType);
       tsOp.DeclareInput("operation", intType);
-			tsOp.DeclareInput("value", stringType);
+      tsOp.DeclareInput("value", stringType);
 
       // `Evaluate BattleTech Int` condition
       Main.Logger.Log("Declaring 'Evaluate BattleTech Int' condition");
       tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech Int", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechInt));
-			tsOp.DeclareInput("scope", SimGameScopeType);
-			tsOp.DeclareInput("param", stringType);
+      tsOp.DeclareInput("scope", SimGameScopeType);
+      tsOp.DeclareInput("param", stringType);
       tsOp.DeclareInput("operation", intType);
-			tsOp.DeclareInput("value", intType);
+      tsOp.DeclareInput("value", intType);
 
       // `Evaluate BattleTech Float` condition
       Main.Logger.Log("Declaring 'Evaluate BattleTech Float' condition");
       tsOp = env.DeclareOp("ConditionFunction", "Evaluate BattleTech Float", boolType, new TsOp.EvalDelegate(Conditions.EvaluateBattleTechFloat));
-			tsOp.DeclareInput("scope", SimGameScopeType);
-			tsOp.DeclareInput("param", stringType);
+      tsOp.DeclareInput("scope", SimGameScopeType);
+      tsOp.DeclareInput("param", stringType);
       tsOp.DeclareInput("operation", intType);
-			tsOp.DeclareInput("value", floatType);
+      tsOp.DeclareInput("value", floatType);
 
       // Evaluate Funds
       Main.Logger.Log("Declaring 'Evaluate Funds' condition");
       tsOp = env.DeclareOp("ConditionFunction", "Evaluate Funds", boolType, new TsOp.EvalDelegate(Conditions.EvaluateFunds));
       tsOp.DeclareInput("operation", intType);
-			tsOp.DeclareInput("value", intType);
+      tsOp.DeclareInput("value", intType);
 
       /*
       * ACTIONS
       */
-      
+
       // `TimeSkip` action
       Main.Logger.Log("Declaring 'Time Skip' action");
       tsOp = env.DeclareOp("EffectFunctions", "Time Skip", voidType, new TsOp.EvalDelegate(Actions.TimeSkip));
@@ -91,7 +91,7 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Set Characters Visible", voidType, new TsOp.EvalDelegate(Actions.SetCharactersVisible));
       tsOp.DeclareInput("isVisible", intType);
       tsOp.DeclareInput("crewNames", stringType);
-      
+
       // 'Start Conversation' action
       Main.Logger.Log("Declaring 'Start Conversation' action");
       tsOp = env.DeclareOp("EffectFunctions", "Start Conversation Custom", voidType, new TsOp.EvalDelegate(Actions.StartConversation));
@@ -107,10 +107,16 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("employer", stringType);
       tsOp.DeclareInput("possibleLocation", stringType);
 
+      // 'Add Flashpoint' action
+      Main.Logger.Log("Declaring 'Add Flashpoint' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Add Flashpoint", voidType, new TsOp.EvalDelegate(Actions.AddFlashpoint));
+      tsOp.DeclareInput("flashpointId", stringType);
+      tsOp.DeclareInput("systemId", stringType);
+
       /*
       * VALUE GETTERS
       */
-      
+
       // `Get BattleTech String` value getter
       Main.Logger.Log("Declaring 'Get BattleTech String' value getter");
       tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech String", stringType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechString));
