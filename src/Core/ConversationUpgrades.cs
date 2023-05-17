@@ -98,6 +98,7 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("conversationId", stringType);
       tsOp.DeclareInput("groupHeader", stringType);
       tsOp.DeclareInput("groupSubHeader", stringType);
+      tsOp.DeclareInput("forceNonFPConferenceRoom", intType);
 
       // 'Add Contract' action
       Main.Logger.Log("Declaring 'Add Contract' action");
