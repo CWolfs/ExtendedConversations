@@ -20,6 +20,7 @@ namespace ExtendedConversations.Core {
     public static bool MovedKameraInLeopardCommandCenter = false;
     public static bool ForceNextIsInFlashpointCheckFalse = false;
     public static Conversation ActiveConversation = null;
+    public static string HardLockTarget = null;
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
@@ -196,6 +197,17 @@ namespace ExtendedConversations.Core {
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       simulation.GenerateFlashpointCommand(flashpointId, systemId);
+
+      return null;
+    }
+
+    public static object SetCameraHardLock(TsEnvironment env, object[] inputs) {
+      string key = env.ToString(inputs[0]);
+
+      Main.Logger.Log($"[SetCameraHardLock] Received key '{key}'");
+      HardLockTarget = key;
+
+      UnityGameInstance.BattleTechGame.Simulation.ConversationManager.SetCameraLockTarget(key);
 
       return null;
     }
