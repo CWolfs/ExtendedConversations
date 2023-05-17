@@ -15,6 +15,8 @@ namespace ExtendedConversations {
         Actions.ForceNextIsInFlashpointCheckFalse = false;
         Actions.ActiveConversation = null;
       }
+
+      Actions.HardLockTarget = null;
     }
   }
 }

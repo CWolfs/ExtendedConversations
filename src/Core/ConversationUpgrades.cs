@@ -114,6 +114,11 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("flashpointId", stringType);
       tsOp.DeclareInput("systemId", stringType);
 
+      // 'Set BattleTech Camera Hard Lock' action
+      Main.Logger.Log("Declaring 'Set BattleTech Camera Hard Lock' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Set BattleTech Camera Hard Lock", voidType, new TsOp.EvalDelegate(Actions.SetCameraHardLock));
+      tsOp.DeclareInput("key", stringType);
+
       /*
       * VALUE GETTERS
       */
