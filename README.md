@@ -36,7 +36,7 @@ Dialog tags allow you to inject data into your dialog text.
 - `Set Characters Visible` - This allows you to show and hide characters in the dropship. You specify the characters in a comma separated list.
 - `Add Contract` - This allows you to add a contract to the contracts list in the XOs room.
 - `Add Flashpoint` - This allows you to add a flashpoint to the starmap. See [usage instructions](https://github.com/CWolfs/ExtendedConversations/issues/44#issuecomment-1335134292).
-- `Set Camera Hard Lock` - This has one advantage over the vanilla `Set Camera Lock`. It is useful in 1-on-1 conversations and letting other characters talk without transitioning away. The vanilla lock doesn't work for 1-on-1 conversations.
+- `Set BattleTech Camera Hard Lock` - This has one advantage over the vanilla `Set BattleTech Camera Lock`. It is useful in 1-on-1 conversations and letting other characters talk without transitioning away. The vanilla lock doesn't work for 1-on-1 conversations.
 
 ### Value Getters
 
