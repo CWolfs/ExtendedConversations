@@ -16,6 +16,15 @@
       "types": ["string"],
       "tooltip": "The node to sideload into the conversation on. If left blank then it will start on the first root.",
       "viewLabel": "and enter at node id {value}"
+    },
+    {
+      "label": "Resume host after sideload finished",
+      "types": ["int"],
+      "tooltip": "This setting can allow the conversation to resume from this point after the sideloaded conversation has finished.",
+      "values": [
+        { "viewlabel": "", "text": "False", "value": 0 },
+        { "viewlabel": "and resume the host conversation on finish", "text": "True", "value": 1 }
+      ]
     }
   ]
 }

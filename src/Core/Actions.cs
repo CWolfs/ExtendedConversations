@@ -14,13 +14,19 @@ using isogame;
 
 using ExtendedConversations;
 using ExtendedConversations.Utils;
+using ExtendedConversations.State;
 
 namespace ExtendedConversations.Core {
   public class Actions {
+    // TODO: Move all this into a state class
     public static bool MovedKameraInLeopardCommandCenter = false;
     public static bool ForceNextIsInFlashpointCheckFalse = false;
     public static Conversation ActiveConversation = null;
     public static string HardLockTarget = null;
+
+    // Sideload Conversation state
+    public static Dictionary<string, SideloadConversationState> SideLoadCachedState = new Dictionary<string, SideloadConversationState>();
+    public static Dictionary<string, string> SideloadConversationMap = new Dictionary<string, string>(); // <sideloadedConvoId, previousConvoId>
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
@@ -149,11 +155,13 @@ namespace ExtendedConversations.Core {
     public static object SideloadConversation(TsEnvironment env, object[] inputs) {
       string conversationId = env.ToString(inputs[0]);
       string nodeEntryId = env.ToString(inputs[1]);
-      Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId + "with nodeEntryId: " + nodeEntryId);
+      bool resumeHostOnFinish = env.ToBool(inputs[2]);
+      Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId + " with nodeEntryId: " + nodeEntryId + " with resumeHostOnFinish: " + resumeHostOnFinish);
 
       Conversation conversation = null;
       SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
       SimGameConversationManager conversationManager = simGame.ConversationManager;
+      Conversation currentConversation = conversationManager.thisConvoDef;
 
       try {
         conversation = simGame.DataManager.SimGameConversations.Get(conversationId);
@@ -164,6 +172,16 @@ namespace ExtendedConversations.Core {
       if (conversation == null) {
         Main.Logger.Log($"[SideloadConversation] Conversation is null for id '{conversationId}'");
       } else {
+        SideloadConversationState cachedState = new SideloadConversationState();
+        cachedState.convoDef = currentConversation;
+        cachedState.currentLink = conversationManager.currentLink;
+        cachedState.currentNode = conversationManager.currentNode;
+        cachedState.state = conversationManager.thisState;
+        cachedState.linkToAutoFollow = conversationManager.linkToAutoFollow;
+        // cachedState.previousNodes = conversationManager.previousNodes; // TODO: Figure out deep cloning for this
+        Actions.SideLoadCachedState.Add(currentConversation.idRef.id, cachedState);
+        Actions.SideloadConversationMap.Add(conversation.idRef.id, currentConversation.idRef.id);
+
         conversationManager.thisConvoDef = conversation;
         conversationManager.currentNode = null;
         conversationManager.currentLink = null;

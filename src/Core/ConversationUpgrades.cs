@@ -105,6 +105,7 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Sideload Conversation", voidType, new TsOp.EvalDelegate(Actions.SideloadConversation));
       tsOp.DeclareInput("conversationId", stringType);
       tsOp.DeclareInput("nodeEntryId", stringType);
+      tsOp.DeclareInput("resumeHostOnFinish", intType);
 
       // 'Add Contract' action
       Main.Logger.Log("Declaring 'Add Contract' action");
