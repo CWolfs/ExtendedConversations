@@ -10,6 +10,12 @@
       "label": "Conversation Id",
       "types": ["string"],
       "viewLabel": "for conversation id {value}"
+    },
+    {
+      "label": "Entry Node Id",
+      "types": ["string"],
+      "tooltip": "The node to sideload into the conversation on. If left blank then it will start on the first root.",
+      "viewLabel": "and enter at node id {value}"
     }
   ]
 }

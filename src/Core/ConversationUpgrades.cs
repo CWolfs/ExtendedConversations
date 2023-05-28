@@ -104,6 +104,7 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Sideload Conversation' action");
       tsOp = env.DeclareOp("EffectFunctions", "Sideload Conversation", voidType, new TsOp.EvalDelegate(Actions.SideloadConversation));
       tsOp.DeclareInput("conversationId", stringType);
+      tsOp.DeclareInput("nodeEntryId", stringType);
 
       // 'Add Contract' action
       Main.Logger.Log("Declaring 'Add Contract' action");

@@ -148,7 +148,8 @@ namespace ExtendedConversations.Core {
 
     public static object SideloadConversation(TsEnvironment env, object[] inputs) {
       string conversationId = env.ToString(inputs[0]);
-      Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId);
+      string nodeEntryId = env.ToString(inputs[1]);
+      Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId + "with nodeEntryId: " + nodeEntryId);
 
       Conversation conversation = null;
       SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
@@ -163,7 +164,6 @@ namespace ExtendedConversations.Core {
       if (conversation == null) {
         Main.Logger.Log($"[SideloadConversation] Conversation is null for id '{conversationId}'");
       } else {
-        Main.Logger.Log($"[SideloadConversation] Sideloading...");
         conversationManager.thisConvoDef = conversation;
         conversationManager.currentNode = null;
         conversationManager.currentLink = null;
@@ -175,7 +175,6 @@ namespace ExtendedConversations.Core {
           conversationNode.branches.Add(conversation.roots[i]);
         }
         conversationManager.currentNode = conversationNode;
-        conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.NODE;
 
         bool autoFollow = false;
         bool passedConditions = conversationManager.EvaluateNode(conversationNode, out autoFollow);
@@ -183,16 +182,32 @@ namespace ExtendedConversations.Core {
           conversationManager.EndConversation();
         }
 
-        // Handle node --> response
-        conversationManager.currentLink = conversation.roots[0];
+        // This action must always have a node followed by an empty response
+        // This then loads into a node on the sideloaded conversation
 
-        // Handle response --> node
-        conversationManager.currentNode = conversationNode;
-        conversationManager.linkToAutoFollow = 0;
+        // Find the entry node if provided
+        if (nodeEntryId == "") {
+          conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.NODE;
+          conversationManager.currentNode = conversationNode;
+        } else {
+          int entryNodeIndex = conversation.nodes.FindIndex((node => node.idRef.id == nodeEntryId));
 
-        // debug
-        Main.Logger.Log($"[SideloadConversation] currentLink:" + conversation.roots[0].idRef.id);
+          if (entryNodeIndex != -1) {
+            conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.RESPONSE;
 
+            ConversationLink conversationLink = new ConversationLink();
+            conversationLink.onlyOnce = false;
+            conversationLink.idRef = new IDRef();
+            conversationLink.idRef.id = Guid.NewGuid().ToString();
+            conversationLink.nextNodeIndex = entryNodeIndex;
+
+            conversationManager.currentLink = conversationLink;
+          } else {
+            conversationManager.currentNode = conversationNode;
+            conversationManager.currentLink = conversation.roots[0];
+            conversationManager.linkToAutoFollow = 0;
+          }
+        }
       }
 
       return null;
