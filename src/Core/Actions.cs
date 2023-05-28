@@ -142,8 +142,60 @@ namespace ExtendedConversations.Core {
 
     static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader) {
       yield return new WaitForSeconds(1);
-      SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
+      SimGameInterruptManager interruptManager = simulation.interruptQueue;
       interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
+    }
+
+    public static object SideloadConversation(TsEnvironment env, object[] inputs) {
+      string conversationId = env.ToString(inputs[0]);
+      Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId);
+
+      Conversation conversation = null;
+      SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+      SimGameConversationManager conversationManager = simGame.ConversationManager;
+
+      try {
+        conversation = simGame.DataManager.SimGameConversations.Get(conversationId);
+      } catch (KeyNotFoundException) {
+        Main.Logger.Log($"[SideloadConversation] Conversation with id '{conversationId}' not found. Check the conversation id is correct or/and if the conversation has loaded correctly.");
+      }
+
+      if (conversation == null) {
+        Main.Logger.Log($"[SideloadConversation] Conversation is null for id '{conversationId}'");
+      } else {
+        Main.Logger.Log($"[SideloadConversation] Sideloading...");
+        conversationManager.thisConvoDef = conversation;
+        conversationManager.currentNode = null;
+        conversationManager.currentLink = null;
+        conversationManager.previousNodes.Clear();
+
+        ConversationNode conversationNode = new ConversationNode();
+        conversationNode.index = -1;
+        for (int i = 0; i < conversation.roots.Count; i++) {
+          conversationNode.branches.Add(conversation.roots[i]);
+        }
+        conversationManager.currentNode = conversationNode;
+        conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.NODE;
+
+        bool autoFollow = false;
+        bool passedConditions = conversationManager.EvaluateNode(conversationNode, out autoFollow);
+        if (autoFollow && passedConditions) {
+          conversationManager.EndConversation();
+        }
+
+        // Handle node --> response
+        conversationManager.currentLink = conversation.roots[0];
+
+        // Handle response --> node
+        conversationManager.currentNode = conversationNode;
+        conversationManager.linkToAutoFollow = 0;
+
+        // debug
+        Main.Logger.Log($"[SideloadConversation] currentLink:" + conversation.roots[0].idRef.id);
+
+      }
+
+      return null;
     }
 
     public static object AddContract(TsEnvironment env, object[] inputs) {

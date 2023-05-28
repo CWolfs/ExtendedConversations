@@ -100,6 +100,11 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("groupSubHeader", stringType);
       tsOp.DeclareInput("forceNonFPConferenceRoom", intType);
 
+      // 'Sideload Conversation' action
+      Main.Logger.Log("Declaring 'Sideload Conversation' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Sideload Conversation", voidType, new TsOp.EvalDelegate(Actions.SideloadConversation));
+      tsOp.DeclareInput("conversationId", stringType);
+
       // 'Add Contract' action
       Main.Logger.Log("Declaring 'Add Contract' action");
       tsOp = env.DeclareOp("EffectFunctions", "Add Contract", voidType, new TsOp.EvalDelegate(Actions.AddContract));
