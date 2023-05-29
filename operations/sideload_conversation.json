@@ -4,7 +4,7 @@
   "view": ["label", "inputs"],
   "scope": "action",
   "category": "primary",
-  "tooltip": "This will sideload a conversation into an already running conversation. Useful for having a top level conversation that loads others based on high level conditions.",
+  "tooltip": "This will sideload a conversation into an already running conversation. Useful for having a top level conversation that loads others based on high level conditions. Important: Only set on a Prompt Node and have at least one Response Node under it.",
   "inputs": [
     {
       "label": "Conversation Id",
@@ -24,7 +24,8 @@
       "values": [
         { "viewlabel": "", "text": "False", "value": 0 },
         { "viewlabel": "and resume the host conversation on finish", "text": "True", "value": 1 }
-      ]
+      ],
+      "defaultValue": 1
     }
   ]
 }
