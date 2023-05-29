@@ -40,8 +40,9 @@ namespace ExtendedConversations {
         simGameConversationManager.currentNode = cachedState.currentNode;
         simGameConversationManager.thisState = cachedState.state;
         simGameConversationManager.linkToAutoFollow = cachedState.linkToAutoFollow;
-
+        simGameConversationManager.onlyOnceLinks = cachedState.onlyOnceLinks;
         simGameConversationManager.previousNodes.Clear();
+
         foreach (ConversationNode prevNode in cachedState.previousNodes) {
           simGameConversationManager.previousNodes.Add(prevNode);
         }
@@ -49,10 +50,17 @@ namespace ExtendedConversations {
         Actions.SideLoadCachedState.Remove(previousConversationId);
         Actions.SideloadConversationMap.Remove(conversationId);
 
-        if (simGameConversationManager.currentLink.responseText == "") {
-          simGameConversationManager.Continue(true);
+        if (cachedState.useNodeOnHydrate) {
+          Main.Logger.Log("[ProcessSideloadConversationPatch] useNodeOnHydrate so attempting to use node instead");
+          simGameConversationManager.currentNode = cachedState.convoDef.nodes[cachedState.nextNodeIndex];
+          Main.Logger.Log("[ProcessSideloadConversationPatch] About to shownodetext " + simGameConversationManager.currentNode.text);
+          simGameConversationManager.ShowNodeText(simGameConversationManager.currentNode);
         } else {
-          simGameConversationManager.SelectResponse(cachedState.ResponseIndexClicked);
+          if (simGameConversationManager.currentLink.responseText == "") {
+            simGameConversationManager.Continue(true);
+          } else {
+            simGameConversationManager.SelectResponse(cachedState.ResponseIndexClicked);
+          }
         }
 
         return true;

@@ -18,6 +18,9 @@ using ExtendedConversations.State;
 
 namespace ExtendedConversations.Core {
   public class Actions {
+    public static bool IsNodeAction { get; set; } = false;
+    public static bool IsLinkAction { get; set; } = false; // Response or Root
+
     // TODO: Move all this into a state class
     public static bool MovedKameraInLeopardCommandCenter = false;
     public static bool ForceNextIsInFlashpointCheckFalse = false;
@@ -25,6 +28,7 @@ namespace ExtendedConversations.Core {
     public static string HardLockTarget = null;
 
     // Sideload Conversation state
+    public static bool ReplaceLinkOnResponseIfNeeded { get; set; } = false;
     public static bool SideLoadCaptureNextResponseIndex { get; set; } = false;
     public static Dictionary<string, SideloadConversationState> SideLoadCachedState = new Dictionary<string, SideloadConversationState>();
     public static Dictionary<string, string> SideloadConversationMap = new Dictionary<string, string>(); // <sideloadedConvoId, previousConvoId>
@@ -158,6 +162,9 @@ namespace ExtendedConversations.Core {
       string nodeEntryId = env.ToString(inputs[1]);
       bool resumeHostOnFinish = env.ToBool(inputs[2]);
       Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId + " with nodeEntryId: " + nodeEntryId + " with resumeHostOnFinish: " + resumeHostOnFinish);
+      if (IsNodeAction) Main.Logger.Log($"[SideloadConversation] Sideload conversation is a node action");
+      if (IsLinkAction) Main.Logger.Log($"[SideloadConversation] Sideload conversation is a link action");
+      ReplaceLinkOnResponseIfNeeded = true;
 
       Conversation conversation = null;
       SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
@@ -180,6 +187,23 @@ namespace ExtendedConversations.Core {
           cachedState.currentNode = conversationManager.currentNode;
           cachedState.state = conversationManager.thisState;
           cachedState.linkToAutoFollow = conversationManager.linkToAutoFollow;
+          cachedState.onlyOnceLinks = conversationManager.onlyOnceLinks;
+
+          if (IsLinkAction) {
+            Main.Logger.Log($"[SideloadConversation] Is link action - use hydrate node instead");
+            cachedState.useNodeOnHydrate = true;
+
+            // Fails for responses with autofollow
+            // TODO: Identify if this is an autofollow case and get the _next_ node instead of the currentNode (as currentLink.nextNodeIndex returns the current node itself).
+            // Works for responses with text
+            // Works for nodes with respose autofollow
+            // Works for nodes with response text
+
+            ConversationNode debugNode = currentConversation.nodes[conversationManager.currentLink.nextNodeIndex];
+            Main.Logger.Log($"[SideloadConversation] conversationManager.currentLink.nextNodeIndex: " + conversationManager.currentLink.nextNodeIndex);
+            Main.Logger.Log($"[SideloadConversation] ... which has node text: " + debugNode.text);
+            cachedState.nextNodeIndex = conversationManager.currentLink.nextNodeIndex;
+          }
 
           cachedState.previousNodes = new List<ConversationNode>();
           foreach (ConversationNode prevNode in conversationManager.previousNodes) {
@@ -234,6 +258,9 @@ namespace ExtendedConversations.Core {
           }
         }
       }
+
+      IsNodeAction = false;
+      IsLinkAction = false;
 
       return null;
     }
