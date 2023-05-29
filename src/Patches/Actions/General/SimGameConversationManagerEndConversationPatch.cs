@@ -40,7 +40,11 @@ namespace ExtendedConversations {
         simGameConversationManager.currentNode = cachedState.currentNode;
         simGameConversationManager.thisState = cachedState.state;
         simGameConversationManager.linkToAutoFollow = cachedState.linkToAutoFollow;
+
         simGameConversationManager.previousNodes.Clear();
+        foreach (ConversationNode prevNode in cachedState.previousNodes) {
+          simGameConversationManager.previousNodes.Add(prevNode);
+        }
 
         Actions.SideLoadCachedState.Remove(previousConversationId);
         Actions.SideloadConversationMap.Remove(conversationId);

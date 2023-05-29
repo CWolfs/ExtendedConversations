@@ -22,5 +22,6 @@ namespace ExtendedConversations.State {
     public ConversationLink currentLink { get; set; }
     public SimGameConversationManager.ConversationState state { get; set; }
     public int linkToAutoFollow { get; set; }
+    public List<ConversationNode> previousNodes { get; set; }
   }
 }

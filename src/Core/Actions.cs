@@ -172,15 +172,22 @@ namespace ExtendedConversations.Core {
       if (conversation == null) {
         Main.Logger.Log($"[SideloadConversation] Conversation is null for id '{conversationId}'");
       } else {
-        SideloadConversationState cachedState = new SideloadConversationState();
-        cachedState.convoDef = currentConversation;
-        cachedState.currentLink = conversationManager.currentLink;
-        cachedState.currentNode = conversationManager.currentNode;
-        cachedState.state = conversationManager.thisState;
-        cachedState.linkToAutoFollow = conversationManager.linkToAutoFollow;
-        // cachedState.previousNodes = conversationManager.previousNodes; // TODO: Figure out deep cloning for this
-        Actions.SideLoadCachedState.Add(currentConversation.idRef.id, cachedState);
-        Actions.SideloadConversationMap.Add(conversation.idRef.id, currentConversation.idRef.id);
+        if (resumeHostOnFinish) {
+          SideloadConversationState cachedState = new SideloadConversationState();
+          cachedState.convoDef = currentConversation;
+          cachedState.currentLink = conversationManager.currentLink;
+          cachedState.currentNode = conversationManager.currentNode;
+          cachedState.state = conversationManager.thisState;
+          cachedState.linkToAutoFollow = conversationManager.linkToAutoFollow;
+
+          cachedState.previousNodes = new List<ConversationNode>();
+          foreach (ConversationNode prevNode in conversationManager.previousNodes) {
+            cachedState.previousNodes.Add(prevNode);
+          }
+
+          Actions.SideLoadCachedState.Add(currentConversation.idRef.id, cachedState);
+          Actions.SideloadConversationMap.Add(conversation.idRef.id, currentConversation.idRef.id);
+        }
 
         conversationManager.thisConvoDef = conversation;
         conversationManager.currentNode = null;
