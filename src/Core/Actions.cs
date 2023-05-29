@@ -25,6 +25,7 @@ namespace ExtendedConversations.Core {
     public static string HardLockTarget = null;
 
     // Sideload Conversation state
+    public static bool SideLoadCaptureNextResponseIndex { get; set; } = false;
     public static Dictionary<string, SideloadConversationState> SideLoadCachedState = new Dictionary<string, SideloadConversationState>();
     public static Dictionary<string, string> SideloadConversationMap = new Dictionary<string, string>(); // <sideloadedConvoId, previousConvoId>
 
@@ -187,6 +188,8 @@ namespace ExtendedConversations.Core {
 
           Actions.SideLoadCachedState.Add(currentConversation.idRef.id, cachedState);
           Actions.SideloadConversationMap.Add(conversation.idRef.id, currentConversation.idRef.id);
+
+          SideLoadCaptureNextResponseIndex = true;
         }
 
         conversationManager.thisConvoDef = conversation;
@@ -206,9 +209,6 @@ namespace ExtendedConversations.Core {
         if (autoFollow && passedConditions) {
           conversationManager.EndConversation();
         }
-
-        // This action must always have a node followed by an empty response
-        // This then loads into a node on the sideloaded conversation
 
         // Find the entry node if provided
         if (nodeEntryId == "") {

@@ -49,7 +49,11 @@ namespace ExtendedConversations {
         Actions.SideLoadCachedState.Remove(previousConversationId);
         Actions.SideloadConversationMap.Remove(conversationId);
 
-        simGameConversationManager.Continue(true);
+        if (simGameConversationManager.currentLink.responseText == "") {
+          simGameConversationManager.Continue(true);
+        } else {
+          simGameConversationManager.SelectResponse(cachedState.ResponseIndexClicked);
+        }
 
         return true;
       }
