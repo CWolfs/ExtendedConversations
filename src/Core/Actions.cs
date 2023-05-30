@@ -189,20 +189,25 @@ namespace ExtendedConversations.Core {
           cachedState.linkToAutoFollow = conversationManager.linkToAutoFollow;
           cachedState.onlyOnceLinks = conversationManager.onlyOnceLinks;
 
+          // Handle action being on a Response
           if (IsLinkAction) {
-            Main.Logger.Log($"[SideloadConversation] Is link action - use hydrate node instead");
             cachedState.useNodeOnHydrate = true;
 
-            // Fails for responses with autofollow
-            // TODO: Identify if this is an autofollow case and get the _next_ node instead of the currentNode (as currentLink.nextNodeIndex returns the current node itself).
-            // Works for responses with text
-            // Works for nodes with respose autofollow
-            // Works for nodes with response text
+            bool isNodeInAutofollowMode = false;
+            bool forceEnd = conversationManager.EvaluateNode(conversationManager.currentNode, out isNodeInAutofollowMode);
 
-            ConversationNode debugNode = currentConversation.nodes[conversationManager.currentLink.nextNodeIndex];
-            Main.Logger.Log($"[SideloadConversation] conversationManager.currentLink.nextNodeIndex: " + conversationManager.currentLink.nextNodeIndex);
-            Main.Logger.Log($"[SideloadConversation] ... which has node text: " + debugNode.text);
-            cachedState.nextNodeIndex = conversationManager.currentLink.nextNodeIndex;
+            if (isNodeInAutofollowMode) {
+              // Handle action being on an 'Autofollow Response'
+              for (int i = 0; i < conversationManager.currentNode.branches.Count; i++) {
+                ConversationLink conversationLink = conversationManager.currentNode.branches[i];
+                if (conversationLink.responseText == "") {
+                  cachedState.nextNodeIndex = conversationLink.nextNodeIndex;
+                }
+              }
+            } else {
+              // Handle action being on a 'Text response'
+              cachedState.nextNodeIndex = conversationManager.currentLink.nextNodeIndex;
+            }
           }
 
           cachedState.previousNodes = new List<ConversationNode>();
