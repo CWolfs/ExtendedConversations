@@ -51,8 +51,15 @@ namespace ExtendedConversations {
         Actions.SideloadConversationMap.Remove(conversationId);
 
         if (cachedState.useNodeOnHydrate) {
-          simGameConversationManager.currentNode = cachedState.convoDef.nodes[cachedState.nextNodeIndex];
-          simGameConversationManager.ShowNodeText(simGameConversationManager.currentNode);
+          Main.Logger.Log("[ProcessSideloadConversationPatch] useNodeOnHydrate so attempting to use node instead");
+          Main.Logger.Log("[SideloadConversation] cachedState.convoDef.nodes count" + cachedState.convoDef.nodes.Count);
+          Main.Logger.Log("[SideloadConversation] Using nextNodeIndex " + cachedState.nextNodeIndex);
+          if (cachedState.nextNodeIndex > -1) {
+            simGameConversationManager.currentNode = cachedState.convoDef.nodes[cachedState.nextNodeIndex];
+            simGameConversationManager.ShowNodeText(simGameConversationManager.currentNode);
+          } else {
+            return false;
+          }
         } else {
           if (simGameConversationManager.currentLink.responseText == "") {
             simGameConversationManager.Continue(true);

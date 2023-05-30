@@ -191,10 +191,12 @@ namespace ExtendedConversations.Core {
 
           // Handle action being on a Response
           if (IsLinkAction) {
+            Main.Logger.Log($"[SideloadConversation] Is link action - use hydrate node instead");
             cachedState.useNodeOnHydrate = true;
 
             bool isNodeInAutofollowMode = false;
             bool forceEnd = conversationManager.EvaluateNode(conversationManager.currentNode, out isNodeInAutofollowMode);
+            Main.Logger.Log("[SideloadConversation] Current node is in autofollow response mode? " + isNodeInAutofollowMode);
 
             if (isNodeInAutofollowMode) {
               // Handle action being on an 'Autofollow Response'
@@ -205,7 +207,7 @@ namespace ExtendedConversations.Core {
                 }
               }
             } else {
-              // Handle action being on a 'Text response'
+              // Handle action being on a 'Text Response'
               cachedState.nextNodeIndex = conversationManager.currentLink.nextNodeIndex;
             }
           }
