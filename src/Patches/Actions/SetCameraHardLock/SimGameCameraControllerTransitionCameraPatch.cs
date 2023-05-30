@@ -1,5 +1,3 @@
-
-
 using Harmony;
 
 using BattleTech;
