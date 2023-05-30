@@ -244,7 +244,6 @@ namespace ExtendedConversations.Core {
         // Find the entry node if provided
         if (nodeEntryId == "") {
           conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.NODE;
-          conversationManager.currentNode = conversationNode;
         } else {
           int entryNodeIndex = conversation.nodes.FindIndex((node => node.idRef.id == nodeEntryId));
 
@@ -259,8 +258,9 @@ namespace ExtendedConversations.Core {
 
             conversationManager.currentLink = conversationLink;
           } else {
-            conversationManager.currentNode = conversationNode;
-            conversationManager.currentLink = conversation.roots[0];
+            ConversationLink rootLinkToFollow = conversation.GetRootToFollow();
+            if (rootLinkToFollow == null) rootLinkToFollow = conversation.roots[0];
+            conversationManager.currentLink = rootLinkToFollow;
             conversationManager.linkToAutoFollow = 0;
           }
         }
