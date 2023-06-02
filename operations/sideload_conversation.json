@@ -4,7 +4,7 @@
   "view": ["label", "inputs"],
   "scope": "action",
   "category": "primary",
-  "tooltip": "This will sideload a conversation into an already running conversation. Useful for having a top level conversation that loads others based on high level conditions. Important: Only set on a Prompt Node and have at least one Response Node under it.",
+  "tooltip": "This will sideload a conversation into an already running conversation. Useful for having a top level conversation that loads others based on high level conditions. Important: Its recommeneded you set this action on Responses. If you set on a Prompt node then the following Response might not evaluate its condition but it will work for sideloading.",
   "inputs": [
     {
       "label": "Conversation Id",
@@ -14,7 +14,7 @@
     {
       "label": "Entry Node Id",
       "types": ["string"],
-      "tooltip": "The node to sideload into the conversation on. If left blank then it will start on the first root.",
+      "tooltip": "The Prompt / Response node to sideload directly into the conversation on. If left blank then it will enter the conversation like normal (and evalute all conditions on root nodes).",
       "viewLabel": "and enter at node id {value}"
     },
     {
