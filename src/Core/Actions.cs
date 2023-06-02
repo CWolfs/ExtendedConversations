@@ -14,12 +14,24 @@ using isogame;
 
 using ExtendedConversations;
 using ExtendedConversations.Utils;
+using ExtendedConversations.State;
 
 namespace ExtendedConversations.Core {
   public class Actions {
+    public static bool IsNodeAction { get; set; } = false;
+    public static bool IsLinkAction { get; set; } = false; // Response or Root
+
+    // TODO: Move all this into a state class
     public static bool MovedKameraInLeopardCommandCenter = false;
     public static bool ForceNextIsInFlashpointCheckFalse = false;
     public static Conversation ActiveConversation = null;
+    public static string HardLockTarget = null;
+
+    // Sideload Conversation state
+    public static bool ReplaceLinkOnResponseIfNeeded { get; set; } = false;
+    public static bool SideLoadCaptureNextResponseIndex { get; set; } = false;
+    public static Dictionary<string, SideloadConversationState> SideLoadCachedState = new Dictionary<string, SideloadConversationState>();
+    public static Dictionary<string, string> SideloadConversationMap = new Dictionary<string, string>(); // <sideloadedConvoId, previousConvoId>
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
@@ -141,8 +153,123 @@ namespace ExtendedConversations.Core {
 
     static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader) {
       yield return new WaitForSeconds(1);
-      SimGameInterruptManager interruptManager = (SimGameInterruptManager)ReflectionHelper.GetPrivateField(simulation, "interruptQueue");
+      SimGameInterruptManager interruptManager = simulation.interruptQueue;
       interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
+    }
+
+    public static object SideloadConversation(TsEnvironment env, object[] inputs) {
+      string conversationId = env.ToString(inputs[0]);
+      string nodeEntryId = env.ToString(inputs[1]);
+      bool resumeHostOnFinish = env.ToBool(inputs[2]);
+      Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId + " with nodeEntryId: " + nodeEntryId + " with resumeHostOnFinish: " + resumeHostOnFinish);
+      if (IsNodeAction) Main.Logger.Log($"[SideloadConversation] Sideload conversation is a node action");
+      if (IsLinkAction) Main.Logger.Log($"[SideloadConversation] Sideload conversation is a link action");
+      ReplaceLinkOnResponseIfNeeded = true;
+
+      Conversation conversation = null;
+      SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+      SimGameConversationManager conversationManager = simGame.ConversationManager;
+      Conversation currentConversation = conversationManager.thisConvoDef;
+
+      try {
+        conversation = simGame.DataManager.SimGameConversations.Get(conversationId);
+      } catch (KeyNotFoundException) {
+        Main.Logger.Log($"[SideloadConversation] Conversation with id '{conversationId}' not found. Check the conversation id is correct or/and if the conversation has loaded correctly.");
+      }
+
+      if (conversation == null) {
+        Main.Logger.Log($"[SideloadConversation] Conversation is null for id '{conversationId}'");
+      } else {
+        if (resumeHostOnFinish) {
+          SideloadConversationState cachedState = new SideloadConversationState();
+          cachedState.convoDef = currentConversation;
+          cachedState.currentLink = conversationManager.currentLink;
+          cachedState.currentNode = conversationManager.currentNode;
+          cachedState.state = conversationManager.thisState;
+          cachedState.linkToAutoFollow = conversationManager.linkToAutoFollow;
+          cachedState.onlyOnceLinks = conversationManager.onlyOnceLinks;
+
+          // Handle action being on a Response
+          if (IsLinkAction) {
+            Main.Logger.Log($"[SideloadConversation] Is link action - use hydrate node instead");
+            cachedState.useNodeOnHydrate = true;
+
+            bool isNodeInAutofollowMode = false;
+            bool forceEnd = conversationManager.EvaluateNode(conversationManager.currentNode, out isNodeInAutofollowMode);
+            Main.Logger.Log("[SideloadConversation] Current node is in autofollow response mode? " + isNodeInAutofollowMode);
+
+            if (isNodeInAutofollowMode) {
+              // Handle action being on an 'Autofollow Response'
+              for (int i = 0; i < conversationManager.currentNode.branches.Count; i++) {
+                ConversationLink conversationLink = conversationManager.currentNode.branches[i];
+                if (conversationLink.responseText == "") {
+                  cachedState.nextNodeIndex = conversationLink.nextNodeIndex;
+                }
+              }
+            } else {
+              // Handle action being on a 'Text Response'
+              cachedState.nextNodeIndex = conversationManager.currentLink.nextNodeIndex;
+            }
+          }
+
+          cachedState.previousNodes = new List<ConversationNode>();
+          foreach (ConversationNode prevNode in conversationManager.previousNodes) {
+            cachedState.previousNodes.Add(prevNode);
+          }
+
+          Actions.SideLoadCachedState.Add(currentConversation.idRef.id, cachedState);
+          Actions.SideloadConversationMap.Add(conversation.idRef.id, currentConversation.idRef.id);
+
+          SideLoadCaptureNextResponseIndex = true;
+        }
+
+        conversationManager.thisConvoDef = conversation;
+        conversationManager.currentNode = null;
+        conversationManager.currentLink = null;
+        conversationManager.previousNodes.Clear();
+
+        ConversationNode conversationNode = new ConversationNode();
+        conversationNode.index = -1;
+        for (int i = 0; i < conversation.roots.Count; i++) {
+          conversationNode.branches.Add(conversation.roots[i]);
+        }
+        conversationManager.currentNode = conversationNode;
+
+        bool autoFollow = false;
+        bool passedConditions = conversationManager.EvaluateNode(conversationNode, out autoFollow);
+        if (autoFollow && passedConditions) {
+          conversationManager.EndConversation();
+        }
+
+        // Find the entry node if provided
+        if (nodeEntryId == "") {
+          conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.NODE;
+        } else {
+          int entryNodeIndex = conversation.nodes.FindIndex((node => node.idRef.id == nodeEntryId));
+
+          if (entryNodeIndex != -1) {
+            conversationManager.thisState = BattleTech.SimGameConversationManager.ConversationState.RESPONSE;
+
+            ConversationLink conversationLink = new ConversationLink();
+            conversationLink.onlyOnce = false;
+            conversationLink.idRef = new IDRef();
+            conversationLink.idRef.id = Guid.NewGuid().ToString();
+            conversationLink.nextNodeIndex = entryNodeIndex;
+
+            conversationManager.currentLink = conversationLink;
+          } else {
+            ConversationLink rootLinkToFollow = conversation.GetRootToFollow();
+            if (rootLinkToFollow == null) rootLinkToFollow = conversation.roots[0];
+            conversationManager.currentLink = rootLinkToFollow;
+            conversationManager.linkToAutoFollow = 0;
+          }
+        }
+      }
+
+      IsNodeAction = false;
+      IsLinkAction = false;
+
+      return null;
     }
 
     public static object AddContract(TsEnvironment env, object[] inputs) {
@@ -196,6 +323,17 @@ namespace ExtendedConversations.Core {
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       simulation.GenerateFlashpointCommand(flashpointId, systemId);
+
+      return null;
+    }
+
+    public static object SetCameraHardLock(TsEnvironment env, object[] inputs) {
+      string key = env.ToString(inputs[0]);
+
+      Main.Logger.Log($"[SetCameraHardLock] Received key '{key}'");
+      HardLockTarget = key;
+
+      UnityGameInstance.BattleTechGame.Simulation.ConversationManager.SetCameraLockTarget(key);
 
       return null;
     }

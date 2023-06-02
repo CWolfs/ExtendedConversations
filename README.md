@@ -36,6 +36,8 @@ Dialog tags allow you to inject data into your dialog text.
 - `Set Characters Visible` - This allows you to show and hide characters in the dropship. You specify the characters in a comma separated list.
 - `Add Contract` - This allows you to add a contract to the contracts list in the XOs room.
 - `Add Flashpoint` - This allows you to add a flashpoint to the starmap. See [usage instructions](https://github.com/CWolfs/ExtendedConversations/issues/44#issuecomment-1335134292).
+- `Set BattleTech Camera Hard Lock` - This has one advantage over the vanilla `Set BattleTech Camera Lock`. It is useful in 1-on-1 conversations and letting other characters talk without transitioning away. The vanilla lock doesn't work for 1-on-1 conversations.
+- `Sideload Conversation` - This loads another conversation into the current active conversation. It's seamless so you it feels like it's the same conversation. It can enter the new conversation at a specific node and can also return to the original conversation if enabled. **Important: It's recommended you use this on Response nodes, but you can use it on Prompt nodes too. When using on Prompt nodes conditionals for the following responses at that specific level might not work**.
 
 ### Value Getters
 

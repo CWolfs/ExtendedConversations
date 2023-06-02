@@ -98,6 +98,14 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("conversationId", stringType);
       tsOp.DeclareInput("groupHeader", stringType);
       tsOp.DeclareInput("groupSubHeader", stringType);
+      tsOp.DeclareInput("forceNonFPConferenceRoom", intType);
+
+      // 'Sideload Conversation' action
+      Main.Logger.Log("Declaring 'Sideload Conversation' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Sideload Conversation", voidType, new TsOp.EvalDelegate(Actions.SideloadConversation));
+      tsOp.DeclareInput("conversationId", stringType);
+      tsOp.DeclareInput("nodeEntryId", stringType);
+      tsOp.DeclareInput("resumeHostOnFinish", intType);
 
       // 'Add Contract' action
       Main.Logger.Log("Declaring 'Add Contract' action");
@@ -112,6 +120,11 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Add Flashpoint", voidType, new TsOp.EvalDelegate(Actions.AddFlashpoint));
       tsOp.DeclareInput("flashpointId", stringType);
       tsOp.DeclareInput("systemId", stringType);
+
+      // 'Set BattleTech Camera Hard Lock' action
+      Main.Logger.Log("Declaring 'Set BattleTech Camera Hard Lock' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Set BattleTech Camera Hard Lock", voidType, new TsOp.EvalDelegate(Actions.SetCameraHardLock));
+      tsOp.DeclareInput("key", stringType);
 
       /*
       * VALUE GETTERS

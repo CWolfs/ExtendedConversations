@@ -7,9 +7,14 @@
             "type": "process",
             "args": [
                 "build",
-                "E:/modding/ExtendedConversations/src/ExtendedConversations.csproj"
+                "E:/Modding/BattleTech/ExtendedConversations/src/ExtendedConversations.csproj"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+          "label": "copy (assets)",
+          "type": "shell",
+          "command": "./copy-assets.sh"
         }
     ]
 }
