@@ -125,7 +125,8 @@ namespace ExtendedConversations.Core {
       string groupHeader = env.ToString(inputs[1]);
       string groupSubHeader = env.ToString(inputs[2]);
       bool forceNonFPConferenceRoom = (inputs.Length == 4) ? env.ToBool(inputs[3]) : false;
-      Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
+      int exitLocationId = (inputs.Length == 5) ? env.ToInt(inputs[4]) : 0;
+      Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}' and exitLocationId '{exitLocationId}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       Conversation conversation = null;
@@ -140,7 +141,7 @@ namespace ExtendedConversations.Core {
         Main.Logger.Log($"[StartConversation] Conversation is null for id '{conversationId}'");
       } else {
         simulation.ConversationManager.OneOnOneDialogInterrupt();
-        UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader));
+        UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader, exitLocationId));
         Main.Logger.Log($"[StartConversation] Conversaton queued for immediate start.");
       }
 
@@ -150,10 +151,11 @@ namespace ExtendedConversations.Core {
       return null;
     }
 
-    static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader) {
+    static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader, int exitLocationId) {
       yield return new WaitForSeconds(1);
       SimGameInterruptManager interruptManager = simulation.interruptQueue;
-      interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
+      DropshipMenuType exitLocation = (DropshipMenuType)exitLocationId;
+      interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true, exitLocation);
     }
 
     public static object SideloadConversation(TsEnvironment env, object[] inputs) {
