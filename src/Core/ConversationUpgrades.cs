@@ -99,6 +99,7 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("groupHeader", stringType);
       tsOp.DeclareInput("groupSubHeader", stringType);
       tsOp.DeclareInput("forceNonFPConferenceRoom", intType);
+      tsOp.DeclareInput("exitLocation", intType);
 
       // 'Sideload Conversation' action
       Main.Logger.Log("Declaring 'Sideload Conversation' action");
