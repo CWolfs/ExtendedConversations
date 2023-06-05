@@ -28,7 +28,6 @@ namespace ExtendedConversations.Core {
     public static string HardLockTarget = null;
 
     // Sideload Conversation state
-    public static bool ReplaceLinkOnResponseIfNeeded { get; set; } = false;
     public static bool SideLoadCaptureNextResponseIndex { get; set; } = false;
     public static Dictionary<string, SideloadConversationState> SideLoadCachedState = new Dictionary<string, SideloadConversationState>();
     public static Dictionary<string, string> SideloadConversationMap = new Dictionary<string, string>(); // <sideloadedConvoId, previousConvoId>
@@ -164,7 +163,6 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[SideloadConversation] Sideload conversation id: " + conversationId + " with nodeEntryId: " + nodeEntryId + " with resumeHostOnFinish: " + resumeHostOnFinish);
       if (IsNodeAction) Main.Logger.Log($"[SideloadConversation] Sideload conversation is a node action");
       if (IsLinkAction) Main.Logger.Log($"[SideloadConversation] Sideload conversation is a link action");
-      ReplaceLinkOnResponseIfNeeded = true;
 
       Conversation conversation = null;
       SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
