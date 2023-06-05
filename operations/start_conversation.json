@@ -25,7 +25,7 @@
       "tooltip": "If this is true, when a conversation is triggered it will force the non-FP version of the conference room",
       "values": [
         {
-          "viewlabel": "in the appropriate conference room (FP vs non-FP)",
+          "viewlabel": "",
           "text": "False",
           "value": 0
         },
@@ -43,7 +43,7 @@
       "tooltip": "Specify the exit location you wish to return to after the conversation has finished",
       "values": [
         {
-          "viewlabel": " ",
+          "viewlabel": "",
           "text": "Default",
           "value": 0
         },
