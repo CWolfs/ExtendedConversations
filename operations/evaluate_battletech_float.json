@@ -4,6 +4,7 @@
   "view": ["inputs"],
   "scope": "condition",
   "category": "primary",
+  "tooltip": "WARNING: BattleTech always stores floats as integers so this will not work well",
   "inputs": [
     {
       "label": "Type",
@@ -11,7 +12,8 @@
       "values": [
         { "viewlabel": "Check if company stat", "text": "Company Stats", "value": 1 },
         { "viewlabel": "Check if commander stat", "text": "Commander Stats", "value": 2 },
-        { "viewlabel": "Check if current system stat", "text": "Current System Stats", "value": 3 }
+        { "viewlabel": "Check if current system stat", "text": "Current System Stats", "value": 3 },
+        { "viewlabel": "Check if flashpoint stat", "text": "Flashpoint Stats", "value": 4 }
       ]
     },
     {
