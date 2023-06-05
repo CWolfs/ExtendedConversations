@@ -4,24 +4,24 @@ using BattleTech;
 
 using isogame;
 
-using ExtendedConversations.Core;
+using System;
+
+using ExtendedConversations.Utils;
 
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "ResolveLink")]
   public class SimGameConversationManagerResolveLinkPatch {
     static void Prefix(SimGameConversationManager __instance, ref ConversationLink link) {
-      // Pre-run DoLinkActions(link) to get ahead of the link issue
-      __instance.DoLinkActions(link);
-
-      // If the link actions had a 'sideload conversation' action then replace the link going into ResolveLink
-      if (Actions.ReplaceLinkOnResponseIfNeeded) {
-        link = __instance.currentLink;
-        Actions.ReplaceLinkOnResponseIfNeeded = false;
+      try {
+        // Do a scan of all link actions - if it contains a 'Sideload Conversation' on the link - then run the below code (otherwise ignore it)
+        if (ConversationHelper.DoesLinkContainAction("Sideload Conversation", link)) {
+          // Pre-run DoLinkActions(link) to get ahead of the link issue
+          __instance.DoLinkActions(link);
+          link = __instance.currentLink;
+        }
+      } catch (Exception e) {
+        Main.Logger.LogError("[Extended Conversations] An error occured in SimGameConversationManagerResolveLinkPatch. Caught gracefully." + e.StackTrace.ToString());
       }
-    }
-
-    static void Postfix(SimGameConversationManager __instance, ref ConversationLink link) {
-      Actions.ReplaceLinkOnResponseIfNeeded = false;
     }
   }
 }

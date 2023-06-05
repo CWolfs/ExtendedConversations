@@ -1,3 +1,5 @@
+using System;
+
 using Harmony;
 
 using BattleTech;
@@ -10,10 +12,15 @@ namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "EndConversation")]
   public class SimGameConversationManagerEndConversationPatch {
     static bool Prefix(SimGameConversationManager __instance) {
-      if (ProcessSideloadConversationPatch(__instance)) return false;
-      ProcessForceNonFPConferenceRoomPatch(__instance);
+      try {
+        if (ProcessSideloadConversationPatch(__instance)) return false;
+        ProcessForceNonFPConferenceRoomPatch(__instance);
 
-      return true;
+        return true;
+      } catch (Exception e) {
+        Main.Logger.LogError("[Extended Conversations] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
+        return false;
+      }
     }
 
     private static void ProcessForceNonFPConferenceRoomPatch(SimGameConversationManager simGameConversationManager) {
@@ -28,7 +35,10 @@ namespace ExtendedConversations {
     }
 
     private static bool ProcessSideloadConversationPatch(SimGameConversationManager simGameConversationManager) {
+
       Conversation conversation = simGameConversationManager.thisConvoDef;
+      if (conversation == null) return false;
+
       string conversationId = conversation.idRef.id;
 
       if (Actions.SideloadConversationMap.ContainsKey(conversationId)) {
