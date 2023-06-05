@@ -1,0 +1,77 @@
+{
+  "key": "Add Mech",
+  "label": "Add mech",
+  "view": ["label", "inputs"],
+  "scope": "action",
+  "category": "primary",
+  "tooltip": "This add a mech to the player's mechbay, or storage",
+  "inputs": [
+    {
+      "label": "MechDef Id",
+      "types": ["string", "operation"],
+      "viewLabel": "{value}"
+    },
+    {
+      "label": "Active",
+      "types": ["int"],
+      "values": [
+        {
+          "viewlabel": "to storage",
+          "text": "False",
+          "value": 0
+        },
+        {
+          "viewlabel": "to the mechbay",
+          "text": "True",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "label": "Mechbay Position",
+      "types": ["int"],
+      "viewLabel": "in slot '{value}'.",
+      "defaultValue": -1
+    },
+    {
+      "label": "Force Placement",
+      "types": ["int"],
+      "tooltip": "If this is enabled, along with 'Active' true - if the Mechbay position is already taken by an existing Mech - that mech will be overwritten and lost.",
+      "values": [
+        {
+          "viewlabel": "",
+          "text": "False",
+          "value": 0
+        },
+        {
+          "viewlabel": "Mechbay position is forced.",
+          "text": "True",
+          "value": 1
+        }
+      ],
+      "defaultValue": 0
+    },
+    {
+      "label": "Display Mech Popup",
+      "types": ["int"],
+      "tooltip": "If this is enabled, the 'You have a new Mech' popup appears",
+      "values": [
+        {
+          "text": "False",
+          "value": 0
+        },
+        {
+          "viewlabel": "Player is informed.",
+          "text": "True",
+          "value": 1
+        }
+      ],
+      "defaultValue": 1
+    },
+    {
+      "label": "Mech Popup Header",
+      "types": ["string"],
+      "tooltip": "Custom header for the popup"
+    }
+  ]
+}
