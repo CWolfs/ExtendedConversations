@@ -350,7 +350,11 @@ namespace ExtendedConversations.Core {
 
       Main.Logger.Log($"[AddMech] Received mechdef ID '{mechDefId}' addToStorage '{addToStorage}' displayMechPopup '{displayMechPopup}' popupHeader '{popupHeader}'");
 
-      AddMechById(mechDefId, !addToStorage, false, displayMechPopup, popupHeader);
+      bool active = !addToStorage;
+      bool forcePlacement = addToStorage;
+      displayMechPopup = addToStorage == true ? false : displayMechPopup;
+
+      AddMechById(mechDefId, true, false, displayMechPopup, popupHeader);
 
       return null;
     }
@@ -363,14 +367,19 @@ namespace ExtendedConversations.Core {
         MechDef mech = new MechDef(dataManager.MechDefs.Get(mechDefId), simGame.GenerateSimGameUID());
         int firstFreeMechBay = simGame.GetFirstFreeMechBay();
 
+        if (!active) {
+          forcePlacement = true;
+          active = true;
+        }
+
         Main.Logger.Log("[AddMech] About to Add Mech: " + mechDefId);
-        simGame.AddMech(firstFreeMechBay, mech, active, forcePlacement: false, displayMechPopup, popupHeader);
+        simGame.AddMech(firstFreeMechBay, mech, active, forcePlacement, displayMechPopup, popupHeader);
       } else if (dataManager.ResourceLocator.EntryByID(mechDefId, BattleTechResourceType.MechDef) == null) {
         Main.Logger.LogWarning("[AddMech] Unable to Add Mech. Invalid ID Of: " + mechDefId);
       } else {
         Main.Logger.Log("[AddMech] Requesting MechDef Resource: " + mechDefId);
         simGame.RequestItem<MechDef>(mechDefId, delegate {
-          AddMechById(mechDefId, active, false, displayMechPopup, popupHeader);
+          AddMechById(mechDefId, active, forcePlacement, displayMechPopup, popupHeader);
         }, BattleTechResourceType.MechDef);
       }
     }
