@@ -127,6 +127,14 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("EffectFunctions", "Set BattleTech Camera Hard Lock", voidType, new TsOp.EvalDelegate(Actions.SetCameraHardLock));
       tsOp.DeclareInput("key", stringType);
 
+      // 'Add Mech' action
+      Main.Logger.Log("Declaring 'Add Mech' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Add Mech", voidType, new TsOp.EvalDelegate(Actions.AddMech));
+      tsOp.DeclareInput("mechdefId", stringType);
+      tsOp.DeclareInput("addToStorage", intType);
+      tsOp.DeclareInput("displayMechPopup", intType);
+      tsOp.DeclareInput("popupHeader", stringType);
+
       /*
       * VALUE GETTERS
       */

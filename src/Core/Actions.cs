@@ -337,5 +337,16 @@ namespace ExtendedConversations.Core {
 
       return null;
     }
+
+    public static object AddMech(TsEnvironment env, object[] inputs) {
+      string key = env.ToString(inputs[0]);
+      bool addToStorage = env.ToBool(inputs[1]);
+      bool displayMechPopup = env.ToBool(inputs[2]);
+      string popupHeader = env.ToString(inputs[3]);
+
+      Main.Logger.Log($"[AddMech] Received mechdef ID '{key}' addToStorage '{addToStorage}' displayMechPopup '{displayMechPopup}' popupHeader '{popupHeader}'");
+
+      return null;
+    }
   }
 }
