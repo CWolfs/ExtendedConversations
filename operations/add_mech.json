@@ -4,29 +4,12 @@
   "view": ["label", "inputs"],
   "scope": "action",
   "category": "primary",
-  "tooltip": "This add a mech to the player's mechbay, or storage. If specified to add to the mechbay it will attempt to add it to the next free bay. If there is none, ask the user how to handle the situation like vanilla.",
+  "tooltip": "This add a mech to the player's mechbay. If there is no space in the mechbay then it will ask the user how to handle the situation like vanilla.",
   "inputs": [
     {
       "label": "MechDef Id",
       "types": ["string", "operation"],
-      "viewLabel": "'{value}'"
-    },
-    {
-      "label": "Put into Storage",
-      "types": ["int"],
-      "tooltip": "If true, it will attempt to put the Mech into the player's mechbay. If false, it will put the Mech in storage.",
-      "values": [
-        {
-          "viewlabel": "into the mechbay",
-          "text": "False",
-          "value": 0
-        },
-        {
-          "viewlabel": "into storage",
-          "text": "True",
-          "value": 1
-        }
-      ]
+      "viewLabel": "'{value}' into the mechbay"
     },
     {
       "label": "Display Mech Popup",

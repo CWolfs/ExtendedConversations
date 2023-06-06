@@ -13,13 +13,17 @@ namespace ExtendedConversations {
   public class SimGameConversationManagerEndConversationPatch {
     static bool Prefix(SimGameConversationManager __instance) {
       try {
-        if (ProcessSideloadConversationPatch(__instance)) return false;
+        if (ProcessSideloadConversationPatch(__instance)) {
+          // Override vanilla method if processing a sideload to allow for the sideload mechanic to work
+          return false;
+        }
+
         ProcessForceNonFPConferenceRoomPatch(__instance);
 
         return true;
       } catch (Exception e) {
         Main.Logger.LogError("[Extended Conversations] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
-        return false;
+        return true;
       }
     }
 
