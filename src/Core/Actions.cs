@@ -6,10 +6,14 @@ using Harmony;
 
 using BattleTech;
 using BattleTech.UI;
+using BattleTech.Data;
+
 using TScript;
 using TScript.Ops;
+
 using HBS.Logging;
 using HBS.Collections;
+
 using isogame;
 
 using ExtendedConversations;
@@ -339,14 +343,36 @@ namespace ExtendedConversations.Core {
     }
 
     public static object AddMech(TsEnvironment env, object[] inputs) {
-      string key = env.ToString(inputs[0]);
+      string mechDefId = env.ToString(inputs[0]);
       bool addToStorage = env.ToBool(inputs[1]);
       bool displayMechPopup = env.ToBool(inputs[2]);
       string popupHeader = env.ToString(inputs[3]);
 
-      Main.Logger.Log($"[AddMech] Received mechdef ID '{key}' addToStorage '{addToStorage}' displayMechPopup '{displayMechPopup}' popupHeader '{popupHeader}'");
+      Main.Logger.Log($"[AddMech] Received mechdef ID '{mechDefId}' addToStorage '{addToStorage}' displayMechPopup '{displayMechPopup}' popupHeader '{popupHeader}'");
+
+      AddMechById(mechDefId, !addToStorage, false, displayMechPopup, popupHeader);
 
       return null;
+    }
+
+    private static void AddMechById(string mechDefId, bool active, bool forcePlacement, bool displayMechPopup, string popupHeader) {
+      SimGameState simGame = UnityGameInstance.BattleTechGame.Simulation;
+      DataManager dataManager = UnityGameInstance.BattleTechGame.DataManager;
+
+      if (dataManager.MechDefs.Exists(mechDefId)) {
+        MechDef mech = new MechDef(dataManager.MechDefs.Get(mechDefId), simGame.GenerateSimGameUID());
+        int firstFreeMechBay = simGame.GetFirstFreeMechBay();
+
+        Main.Logger.Log("[AddMech] About to Add Mech: " + mechDefId);
+        simGame.AddMech(firstFreeMechBay, mech, active, forcePlacement: false, displayMechPopup, popupHeader);
+      } else if (dataManager.ResourceLocator.EntryByID(mechDefId, BattleTechResourceType.MechDef) == null) {
+        Main.Logger.LogWarning("[AddMech] Unable to Add Mech. Invalid ID Of: " + mechDefId);
+      } else {
+        Main.Logger.Log("[AddMech] Requesting MechDef Resource: " + mechDefId);
+        simGame.RequestItem<MechDef>(mechDefId, delegate {
+          AddMechById(mechDefId, active, false, displayMechPopup, popupHeader);
+        }, BattleTechResourceType.MechDef);
+      }
     }
   }
 }

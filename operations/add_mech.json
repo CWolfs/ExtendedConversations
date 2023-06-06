@@ -4,7 +4,7 @@
   "view": ["label", "inputs"],
   "scope": "action",
   "category": "primary",
-  "tooltip": "This add a mech to the player's mechbay, or storage. If specified to add to the mechbay it will attempt to add it to the next free bay. If there is none, it will add to storage regardless.",
+  "tooltip": "This add a mech to the player's mechbay, or storage. If specified to add to the mechbay it will attempt to add it to the next free bay. If there is none, ask the user how to handle the situation like vanilla.",
   "inputs": [
     {
       "label": "MechDef Id",
