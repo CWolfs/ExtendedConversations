@@ -8,6 +8,8 @@ using isogame;
 using ExtendedConversations.Core;
 using ExtendedConversations.State;
 
+using System.Threading.Tasks;
+
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "EndConversation")]
   public class SimGameConversationManagerEndConversationPatch {
@@ -24,6 +26,25 @@ namespace ExtendedConversations {
       } catch (Exception e) {
         Main.Logger.LogError("[Extended Conversations] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
         return true;
+      }
+    }
+
+    static async void Postfix(SimGameConversationManager __instance) {
+      await CheckAndRunDelayedMessages();
+    }
+
+    private static async System.Threading.Tasks.Task CheckAndRunDelayedMessages() {
+      try {
+        await System.Threading.Tasks.Task.Delay(1500);
+
+        SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+        if (simGame.interruptQueue.HasQueue) {
+          if (!simGame.interruptQueue.IsOpen) {
+            simGame.interruptQueue.DisplayIfAvailable();
+          }
+        }
+      } catch (Exception e) {
+        Main.Logger.LogError("[Extended Conversations] An error occured in CheckAndRunDelayedMessages. Caught gracefully." + e.StackTrace.ToString());
       }
     }
 
