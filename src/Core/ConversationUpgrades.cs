@@ -131,7 +131,6 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Add Mech' action");
       tsOp = env.DeclareOp("EffectFunctions", "Add Mech", voidType, new TsOp.EvalDelegate(Actions.AddMech));
       tsOp.DeclareInput("mechdefId", stringType);
-      tsOp.DeclareInput("addToStorage", intType);
       tsOp.DeclareInput("displayMechPopup", intType);
       tsOp.DeclareInput("popupHeader", stringType);
 
