@@ -21,7 +21,7 @@ namespace ExtendedConversations.Core {
     public string Interpolate(string text) {
       // Main.Logger.Log($"[InterpolateStats] text '{text}'");
 
-      Regex regex = new Regex("\\<.*?\\>");
+      Regex regex = new Regex("\\<Stats.*?\\>");
       MatchCollection matchCollection = regex.Matches(text);
       while (matchCollection.Count > 0) {
         Match match = matchCollection[0];

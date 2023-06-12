@@ -13,6 +13,11 @@ namespace ExtendedConversations.Utils {
           return UnityGameInstance.BattleTechGame.Simulation.CommanderStats;
         case 3:
           return UnityGameInstance.BattleTechGame.Simulation.CurSystem.Stats;
+        case 4:
+          if (UnityGameInstance.BattleTechGame.Simulation.ActiveFlashpoint == null) {
+            return null;
+          }
+          return UnityGameInstance.BattleTechGame.Simulation.ActiveFlashpoint.Stats;
         default:
           return null;
       }
@@ -28,6 +33,8 @@ namespace ExtendedConversations.Utils {
           return GetStatCollection(2);
         case "currentsystem":
           return GetStatCollection(3);
+        case "flashpoint":
+          return GetStatCollection(4);
         default:
           return null;
       }

@@ -11,7 +11,8 @@
       "values": [
         { "viewlabel": "Check if company stat", "text": "Company Stats", "value": 1 },
         { "viewlabel": "Check if commander stat", "text": "Commander Stats", "value": 2 },
-        { "viewlabel": "Check if current system stat", "text": "Current System Stats", "value": 3 }
+        { "viewlabel": "Check if current system stat", "text": "Current System Stats", "value": 3 },
+        { "viewlabel": "Check if flashpoint stat", "text": "Flashpoint Stats", "value": 4 }
       ]
     },
     {
