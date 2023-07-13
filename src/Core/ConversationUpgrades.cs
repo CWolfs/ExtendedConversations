@@ -65,6 +65,12 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("operation", intType);
       tsOp.DeclareInput("value", intType);
 
+      // Evaluate Timeline
+      Main.Logger.Log("Declaring 'Evaluate Timeline' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate Timeline", boolType, new TsOp.EvalDelegate(Conditions.EvaluateTimeline));
+      tsOp.DeclareInput("operation", intType);
+      tsOp.DeclareInput("date", stringType);
+
       /*
       * ACTIONS
       */
