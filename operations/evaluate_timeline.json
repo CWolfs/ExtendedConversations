@@ -20,6 +20,7 @@
     {
       "label": "Date",
       "types": ["operation", "string"],
+      "tooltip": "Format must be either: yyyy (3026), yyyy-MM (3026-01) or yyyy-MM-dd (3026-01-20)",
       "viewlabel": "the date of '{value}'"
     }
   ]
