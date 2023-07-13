@@ -288,7 +288,7 @@ namespace ExtendedConversations.Core {
       StarSystem currentSystem = simulation.CurSystem;
 
       // Only global if the modder has entered in a location for the action, and it's not the same as the current system
-      if ((possibleLocation != "0") && (location != currentSystem.ID)) {
+      if ((possibleLocation != "0") && (possibleLocation != currentSystem.ID)) {
         global = true;
         location = possibleLocation;
       }
