@@ -136,9 +136,21 @@ namespace ExtendedConversations.Core {
       // 'Add Mech' action
       Main.Logger.Log("Declaring 'Add Mech' action");
       tsOp = env.DeclareOp("EffectFunctions", "Add Mech", voidType, new TsOp.EvalDelegate(Actions.AddMech));
-      tsOp.DeclareInput("mechdefId", stringType);
+      tsOp.DeclareInput("mechDefId", stringType);
       tsOp.DeclareInput("displayMechPopup", intType);
       tsOp.DeclareInput("popupHeader", stringType);
+
+      // 'Trigger Event' action
+      Main.Logger.Log("Declaring 'Trigger Event' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Trigger Event", voidType, new TsOp.EvalDelegate(Actions.TriggerEvent));
+      tsOp.DeclareInput("eventDefId", stringType);
+      tsOp.DeclareInput("ignoreRequirements", intType);
+      tsOp.DeclareInput("forceEvenIfInDiscardPile", intType);
+      tsOp.DeclareInput("addToDiscardPile", intType);
+
+      // 'Trigger Random Event' action
+      Main.Logger.Log("Declaring 'Trigger Random Event' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Trigger Random Event", voidType, new TsOp.EvalDelegate(Actions.TriggerRandomEvent));
 
       /*
       * VALUE GETTERS

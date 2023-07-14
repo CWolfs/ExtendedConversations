@@ -7,6 +7,7 @@ using Harmony;
 using BattleTech;
 using BattleTech.UI;
 using BattleTech.Data;
+using static BattleTech.SimGameEventTracker;
 
 using TScript;
 using TScript.Ops;
@@ -375,6 +376,76 @@ namespace ExtendedConversations.Core {
           AddMechById(index, mechDefId, active, forcePlacement, displayMechPopup, popupHeader);
         }, BattleTechResourceType.MechDef);
       }
+    }
+
+    public static object TriggerEvent(TsEnvironment env, object[] inputs) {
+      string eventDefId = env.ToString(inputs[0]);
+      bool ignoreRequirements = env.ToBool(inputs[1]);
+      bool forceEvenIfInDiscardPile = env.ToBool(inputs[2]);
+      bool addToDiscardPile = env.ToBool(inputs[3]);
+
+      Main.Logger.Log($"[TriggerEvent] Received eventDefID '{eventDefId}' ignoreRequirements '{ignoreRequirements}' addToDiscardPile '{addToDiscardPile}'");
+
+      if (eventDefId == null || eventDefId == "") {
+        Main.Logger.LogError("[TriggerEvent] No eventDefId provided. This is required");
+        return null;
+      }
+
+      SimGameState simGameState = UnityGameInstance.Instance.Game.Simulation;
+
+      if (!simGameState.DataManager.SimGameEventDefs.Exists(eventDefId)) {
+        Main.Logger.LogError($"[TriggerEvent] Invalid eventDefId of '{eventDefId}' provided. No event found by that ID");
+        return null;
+      }
+
+      SimGameEventDef simGameEventDef = simGameState.DataManager.SimGameEventDefs.Get(eventDefId);
+      List<EventDef_MDD> eventDefMDD = MetadataDatabase.Instance.GetEventDefMDD(simGameEventDef);
+
+      if (eventDefMDD.Count < 0) {
+        Main.Logger.LogError($"[TriggerEvent] No EventDefMMD db entry found with key '{simGameEventDef.Description.Id}'");
+        return null;
+      }
+
+      if (!forceEvenIfInDiscardPile && simGameState.companyEventTracker.discardList.Contains(simGameEventDef.Description.Id)) {
+        Main.Logger.Log($"[TriggerEvent] Event exists in the discard pile so skipping this action.");
+        return null;
+      }
+
+      if (!ignoreRequirements) {
+        List<TagSet> tagsetRequirements = new List<TagSet>();
+        switch (simGameEventDef.Scope) {
+          case EventScope.Company:
+            tagsetRequirements.Add(simGameState.CompanyTags);
+            break;
+          case EventScope.Commander:
+            tagsetRequirements.Add(simGameState.CommanderTags);
+            break;
+        }
+
+        PotentialEvent goodEvent = null;
+        if (!simGameState.companyEventTracker.IsEventValid(simGameEventDef.Scope, eventDefMDD[0], tagsetRequirements, out goodEvent)) {
+          Main.Logger.Log($"[TriggerEvent] Event failed its 'IsEventValid' check so the event will not run. That probably means a requirement failed somewhere in the event. This is often intended behaviour. See 'SimGameEventTracker.IsEventValid' for the specific logic. If you wish to ignore the requirements for this action use 'ignoreRequirements' true in ConverseTek.");
+          return null;
+        }
+      }
+
+      simGameState.companyEventTracker.ActivateEvent(simGameEventDef);
+
+      bool isEventInDiscardPile = simGameState.companyEventTracker.discardList.Contains(simGameEventDef.Description.Id);
+      if (!isEventInDiscardPile && addToDiscardPile) {
+        simGameState.companyEventTracker.discardList.Add(simGameEventDef.Description.Id);
+      }
+
+      return null;
+    }
+
+    public static object TriggerRandomEvent(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[TriggerRandomEvent] Running");
+
+      SimGameState simGameState = UnityGameInstance.Instance.Game.Simulation;
+      simGameState.companyEventTracker.ActivateRandomEvent();
+
+      return null;
     }
   }
 }
