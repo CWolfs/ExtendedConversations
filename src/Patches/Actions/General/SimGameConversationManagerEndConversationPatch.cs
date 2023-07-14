@@ -8,18 +8,43 @@ using isogame;
 using ExtendedConversations.Core;
 using ExtendedConversations.State;
 
+using System.Threading.Tasks;
+
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "EndConversation")]
   public class SimGameConversationManagerEndConversationPatch {
     static bool Prefix(SimGameConversationManager __instance) {
       try {
-        if (ProcessSideloadConversationPatch(__instance)) return false;
+        if (ProcessSideloadConversationPatch(__instance)) {
+          // Override vanilla method if processing a sideload to allow for the sideload mechanic to work
+          return false;
+        }
+
         ProcessForceNonFPConferenceRoomPatch(__instance);
 
         return true;
       } catch (Exception e) {
         Main.Logger.LogError("[Extended Conversations] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
-        return false;
+        return true;
+      }
+    }
+
+    static async void Postfix(SimGameConversationManager __instance) {
+      await CheckAndRunDelayedMessages();
+    }
+
+    private static async System.Threading.Tasks.Task CheckAndRunDelayedMessages() {
+      try {
+        await System.Threading.Tasks.Task.Delay(1500);
+
+        SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+        if (simGame.interruptQueue.HasQueue) {
+          if (!simGame.interruptQueue.IsOpen) {
+            simGame.interruptQueue.DisplayIfAvailable();
+          }
+        }
+      } catch (Exception e) {
+        Main.Logger.LogError("[Extended Conversations] An error occured in CheckAndRunDelayedMessages. Caught gracefully." + e.StackTrace.ToString());
       }
     }
 

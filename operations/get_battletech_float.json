@@ -3,6 +3,7 @@
   "label": "Get BattleTech Float",
   "view": ["inputs"],
   "category": "secondary",
+  "tooltip": "WARNING: BattleTech always stores floats as integers so this will not work well",
   "inputs": [
     {
       "label": "Type",
@@ -10,7 +11,8 @@
       "values": [
         { "text": "Company Stats", "value": 1 },
         { "text": "Commander Stats", "value": 2 },
-        { "text": "Current System Stats", "value": 3 }
+        { "text": "Current System Stats", "value": 3 },
+        { "text": "Flashpoint Stats", "value": 4 }
       ]
     },
     {

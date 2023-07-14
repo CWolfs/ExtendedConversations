@@ -65,6 +65,12 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("operation", intType);
       tsOp.DeclareInput("value", intType);
 
+      // Evaluate Timeline
+      Main.Logger.Log("Declaring 'Evaluate Timeline' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate Timeline", boolType, new TsOp.EvalDelegate(Conditions.EvaluateTimeline));
+      tsOp.DeclareInput("operation", intType);
+      tsOp.DeclareInput("date", stringType);
+
       /*
       * ACTIONS
       */
@@ -99,6 +105,7 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("groupHeader", stringType);
       tsOp.DeclareInput("groupSubHeader", stringType);
       tsOp.DeclareInput("forceNonFPConferenceRoom", intType);
+      tsOp.DeclareInput("exitLocation", intType);
 
       // 'Sideload Conversation' action
       Main.Logger.Log("Declaring 'Sideload Conversation' action");
@@ -125,6 +132,25 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Set BattleTech Camera Hard Lock' action");
       tsOp = env.DeclareOp("EffectFunctions", "Set BattleTech Camera Hard Lock", voidType, new TsOp.EvalDelegate(Actions.SetCameraHardLock));
       tsOp.DeclareInput("key", stringType);
+
+      // 'Add Mech' action
+      Main.Logger.Log("Declaring 'Add Mech' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Add Mech", voidType, new TsOp.EvalDelegate(Actions.AddMech));
+      tsOp.DeclareInput("mechDefId", stringType);
+      tsOp.DeclareInput("displayMechPopup", intType);
+      tsOp.DeclareInput("popupHeader", stringType);
+
+      // 'Trigger Event' action
+      Main.Logger.Log("Declaring 'Trigger Event' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Trigger Event", voidType, new TsOp.EvalDelegate(Actions.TriggerEvent));
+      tsOp.DeclareInput("eventDefId", stringType);
+      tsOp.DeclareInput("ignoreRequirements", intType);
+      tsOp.DeclareInput("forceEvenIfInDiscardPile", intType);
+      tsOp.DeclareInput("addToDiscardPile", intType);
+
+      // 'Trigger Random Event' action
+      Main.Logger.Log("Declaring 'Trigger Random Event' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Trigger Random Event", voidType, new TsOp.EvalDelegate(Actions.TriggerRandomEvent));
 
       /*
       * VALUE GETTERS

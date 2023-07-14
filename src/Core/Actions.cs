@@ -6,10 +6,15 @@ using Harmony;
 
 using BattleTech;
 using BattleTech.UI;
+using BattleTech.Data;
+using static BattleTech.SimGameEventTracker;
+
 using TScript;
 using TScript.Ops;
+
 using HBS.Logging;
 using HBS.Collections;
+
 using isogame;
 
 using ExtendedConversations;
@@ -125,7 +130,8 @@ namespace ExtendedConversations.Core {
       string groupHeader = env.ToString(inputs[1]);
       string groupSubHeader = env.ToString(inputs[2]);
       bool forceNonFPConferenceRoom = (inputs.Length == 4) ? env.ToBool(inputs[3]) : false;
-      Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}'.");
+      int exitLocationId = (inputs.Length == 5) ? env.ToInt(inputs[4]) : 0;
+      Main.Logger.Log($"[StartConversation] conversationId '{conversationId}' with groupHeader '{groupHeader}' and groupSubHeader '{groupSubHeader}' and exitLocationId '{exitLocationId}'.");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
       Conversation conversation = null;
@@ -140,7 +146,7 @@ namespace ExtendedConversations.Core {
         Main.Logger.Log($"[StartConversation] Conversation is null for id '{conversationId}'");
       } else {
         simulation.ConversationManager.OneOnOneDialogInterrupt();
-        UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader));
+        UnityGameInstance.Instance.StartCoroutine(WaitThenQueueConversation(simulation, conversation, groupHeader, groupSubHeader, exitLocationId));
         Main.Logger.Log($"[StartConversation] Conversaton queued for immediate start.");
       }
 
@@ -150,10 +156,11 @@ namespace ExtendedConversations.Core {
       return null;
     }
 
-    static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader) {
+    static IEnumerator WaitThenQueueConversation(SimGameState simulation, Conversation conversation, string groupHeader, string groupSubHeader, int exitLocationId) {
       yield return new WaitForSeconds(1);
       SimGameInterruptManager interruptManager = simulation.interruptQueue;
-      interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true);
+      DropshipMenuType exitLocation = (DropshipMenuType)exitLocationId;
+      interruptManager.QueueConversation(conversation, groupHeader, groupSubHeader, null, true, exitLocation);
     }
 
     public static object SideloadConversation(TsEnvironment env, object[] inputs) {
@@ -282,7 +289,7 @@ namespace ExtendedConversations.Core {
       StarSystem currentSystem = simulation.CurSystem;
 
       // Only global if the modder has entered in a location for the action, and it's not the same as the current system
-      if ((possibleLocation != "0") && (location != currentSystem.ID)) {
+      if ((possibleLocation != "0") && (possibleLocation != currentSystem.ID)) {
         global = true;
         location = possibleLocation;
       }
@@ -332,6 +339,111 @@ namespace ExtendedConversations.Core {
       HardLockTarget = key;
 
       UnityGameInstance.BattleTechGame.Simulation.ConversationManager.SetCameraLockTarget(key);
+
+      return null;
+    }
+
+    public static object AddMech(TsEnvironment env, object[] inputs) {
+      string mechDefId = env.ToString(inputs[0]);
+      bool displayMechPopup = env.ToBool(inputs[1]);
+      string popupHeader = env.ToString(inputs[2]);
+
+      if (popupHeader == "0") popupHeader = null;
+
+      Main.Logger.Log($"[AddMech] Received mechdef ID '{mechDefId}' displayMechPopup '{displayMechPopup}' popupHeader '{popupHeader}'");
+
+      SimGameState simGame = UnityGameInstance.BattleTechGame.Simulation;
+      int index = simGame.GetFirstFreeMechBay();
+
+      AddMechById(index, mechDefId, active: true, forcePlacement: false, displayMechPopup, popupHeader);
+
+      return null;
+    }
+
+    private static void AddMechById(int index, string mechDefId, bool active, bool forcePlacement, bool displayMechPopup, string popupHeader) {
+      SimGameState simGame = UnityGameInstance.BattleTechGame.Simulation;
+      DataManager dataManager = UnityGameInstance.BattleTechGame.DataManager;
+
+      if (dataManager.MechDefs.Exists(mechDefId)) {
+        MechDef mech = new MechDef(dataManager.MechDefs.Get(mechDefId), simGame.GenerateSimGameUID());
+        Main.Logger.Log("[AddMech] About to Add Mech: " + mechDefId);
+        simGame.AddMech(index, mech, active, forcePlacement, displayMechPopup, popupHeader);
+      } else if (dataManager.ResourceLocator.EntryByID(mechDefId, BattleTechResourceType.MechDef) == null) {
+        Main.Logger.LogWarning("[AddMech] Unable to Add Mech. Invalid ID Of: " + mechDefId);
+      } else {
+        Main.Logger.Log("[AddMech] Requesting MechDef Resource: " + mechDefId);
+        simGame.RequestItem<MechDef>(mechDefId, delegate {
+          AddMechById(index, mechDefId, active, forcePlacement, displayMechPopup, popupHeader);
+        }, BattleTechResourceType.MechDef);
+      }
+    }
+
+    public static object TriggerEvent(TsEnvironment env, object[] inputs) {
+      string eventDefId = env.ToString(inputs[0]);
+      bool ignoreRequirements = env.ToBool(inputs[1]);
+      bool forceEvenIfInDiscardPile = env.ToBool(inputs[2]);
+      bool addToDiscardPile = env.ToBool(inputs[3]);
+
+      Main.Logger.Log($"[TriggerEvent] Received eventDefID '{eventDefId}' ignoreRequirements '{ignoreRequirements}' addToDiscardPile '{addToDiscardPile}'");
+
+      if (eventDefId == null || eventDefId == "") {
+        Main.Logger.LogError("[TriggerEvent] No eventDefId provided. This is required");
+        return null;
+      }
+
+      SimGameState simGameState = UnityGameInstance.Instance.Game.Simulation;
+
+      if (!simGameState.DataManager.SimGameEventDefs.Exists(eventDefId)) {
+        Main.Logger.LogError($"[TriggerEvent] Invalid eventDefId of '{eventDefId}' provided. No event found by that ID");
+        return null;
+      }
+
+      SimGameEventDef simGameEventDef = simGameState.DataManager.SimGameEventDefs.Get(eventDefId);
+      List<EventDef_MDD> eventDefMDD = MetadataDatabase.Instance.GetEventDefMDD(simGameEventDef);
+
+      if (eventDefMDD.Count < 0) {
+        Main.Logger.LogError($"[TriggerEvent] No EventDefMMD db entry found with key '{simGameEventDef.Description.Id}'");
+        return null;
+      }
+
+      if (!forceEvenIfInDiscardPile && simGameState.companyEventTracker.discardList.Contains(simGameEventDef.Description.Id)) {
+        Main.Logger.Log($"[TriggerEvent] Event exists in the discard pile so skipping this action.");
+        return null;
+      }
+
+      if (!ignoreRequirements) {
+        List<TagSet> tagsetRequirements = new List<TagSet>();
+        switch (simGameEventDef.Scope) {
+          case EventScope.Company:
+            tagsetRequirements.Add(simGameState.CompanyTags);
+            break;
+          case EventScope.Commander:
+            tagsetRequirements.Add(simGameState.CommanderTags);
+            break;
+        }
+
+        PotentialEvent goodEvent = null;
+        if (!simGameState.companyEventTracker.IsEventValid(simGameEventDef.Scope, eventDefMDD[0], tagsetRequirements, out goodEvent)) {
+          Main.Logger.Log($"[TriggerEvent] Event failed its 'IsEventValid' check so the event will not run. That probably means a requirement failed somewhere in the event. This is often intended behaviour. See 'SimGameEventTracker.IsEventValid' for the specific logic. If you wish to ignore the requirements for this action use 'ignoreRequirements' true in ConverseTek.");
+          return null;
+        }
+      }
+
+      simGameState.companyEventTracker.ActivateEvent(simGameEventDef);
+
+      bool isEventInDiscardPile = simGameState.companyEventTracker.discardList.Contains(simGameEventDef.Description.Id);
+      if (!isEventInDiscardPile && addToDiscardPile) {
+        simGameState.companyEventTracker.discardList.Add(simGameEventDef.Description.Id);
+      }
+
+      return null;
+    }
+
+    public static object TriggerRandomEvent(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[TriggerRandomEvent] Running");
+
+      SimGameState simGameState = UnityGameInstance.Instance.Game.Simulation;
+      simGameState.companyEventTracker.ActivateRandomEvent();
 
       return null;
     }
