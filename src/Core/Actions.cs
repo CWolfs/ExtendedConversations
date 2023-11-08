@@ -447,5 +447,14 @@ namespace ExtendedConversations.Core {
 
       return null;
     }
+
+    public static object ResetBattleTechViewscreen(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[ResetBattleTechViewscreen] Running");
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      simulation.ConversationManager.SetViewscreen(null);
+
+      return null;
+    }
   }
 }

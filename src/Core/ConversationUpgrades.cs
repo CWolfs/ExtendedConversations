@@ -152,6 +152,10 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Trigger Random Event' action");
       tsOp = env.DeclareOp("EffectFunctions", "Trigger Random Event", voidType, new TsOp.EvalDelegate(Actions.TriggerRandomEvent));
 
+      // 'Reset BattleTech Viewscreen' action
+      Main.Logger.Log("Declaring 'Reset BattleTech Viewscreen' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Reset BattleTech Viewscreen", voidType, new TsOp.EvalDelegate(Actions.ResetBattleTechViewscreen));
+
       /*
       * VALUE GETTERS
       */
