@@ -44,7 +44,7 @@ namespace ExtendedConversations.Core {
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
 
       for (int i = 0; i < daysToSkip; i++) {
-        ReflectionHelper.InvokePrivateMethod(simulation, "OnDayPassed", new object[] { 0 });
+        simulation.OnDayPassed(0);
       }
 
       Main.Logger.Log($"[TimeSkip] Skip complete");
@@ -62,7 +62,7 @@ namespace ExtendedConversations.Core {
         simulation.TravelToSystemByString(systemName, true);
       } else {
         StarSystemNode systemNode = simulation.Starmap.GetSystemByID(systemName);
-        ReflectionHelper.SetReadOnlyProperty(simulation, "CurSystem", systemNode.System);
+        simulation.CurSystem = systemNode.System;
         simulation.SetCurrentSystem(systemNode.System, true, false);
       }
 
