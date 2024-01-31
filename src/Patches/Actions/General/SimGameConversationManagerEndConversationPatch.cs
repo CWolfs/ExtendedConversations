@@ -8,7 +8,7 @@ using isogame;
 using ExtendedConversations.Core;
 using ExtendedConversations.State;
 
-using System.Threading.Tasks;
+using BattleTech.UI;
 
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "EndConversation")]
@@ -24,13 +24,27 @@ namespace ExtendedConversations {
 
         return true;
       } catch (Exception e) {
-        Main.Logger.LogError("[Extended Conversations] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
+        Main.Logger.LogError("[SimGameConversationManagerEndConversationPatch] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
         return true;
       }
     }
 
     static async void Postfix(SimGameConversationManager __instance) {
-      await CheckAndRunDelayedMessages();
+      if (SimGameConversationManagerEndConversationPatch.IsCustomRoomActive) {
+        Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.Postfix] About to check and run delayed messages");
+        await CheckAndRunDelayedMessages();
+      } else {
+        Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.Postfix] Skipping check and run of delayed messages as NOT in a custom room.");
+      }
+    }
+
+    public static bool IsCustomRoomActive {
+      get {
+        SGRoomManager roomManager = UnityGameInstance.Instance.Game.Simulation.RoomManager;
+        DropshipLocation dropshipLocation = roomManager.currRoomDropshipLocation;
+
+        return !EnumUtils.IsDefined<DropshipLocation>((int)dropshipLocation);
+      }
     }
 
     private static async System.Threading.Tasks.Task CheckAndRunDelayedMessages() {
@@ -39,12 +53,16 @@ namespace ExtendedConversations {
 
         SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
         if (simGame.interruptQueue.HasQueue) {
-          if (!simGame.interruptQueue.IsOpen) {
+          if (!simGame.interruptQueue.IsOpen && !simGame.ConversationManager.IsOn) {
             simGame.interruptQueue.DisplayIfAvailable();
+          } else {
+            if (simGame.interruptQueue.IsOpen) Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for interrupt popup to close.");
+            if (simGame.ConversationManager.IsOn) Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for conversation manager to finish.");
+            await CheckAndRunDelayedMessages();
           }
         }
       } catch (Exception e) {
-        Main.Logger.LogError("[Extended Conversations] An error occured in CheckAndRunDelayedMessages. Caught gracefully." + e.StackTrace.ToString());
+        Main.Logger.LogError("[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] An error occured in CheckAndRunDelayedMessages. Caught gracefully." + e.StackTrace.ToString());
       }
     }
 
