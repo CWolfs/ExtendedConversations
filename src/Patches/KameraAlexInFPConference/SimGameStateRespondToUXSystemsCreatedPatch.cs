@@ -6,10 +6,15 @@ using BattleTech;
 using BattleTech.UI;
 
 using System.Collections;
+using ExtendedConversations.Core;
 
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameState), "RespondToUXSystemsCreated")]
   public class SimGameStateAttachUXPatch {
+    // static void Prefix(SimGameState __instance) {
+    //   Actions.MovedKameraInLeopardCommandCenter = false;
+    // }
+
     static void Postfix(SimGameState __instance) {
       GameObject flashpointConferenceRoomGO = GameObject.Find("FlashpointConference");
       bool charactersExist = flashpointConferenceRoomGO.transform.Find("Kamea") != null;

@@ -14,13 +14,15 @@ namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "EndConversation")]
   public class SimGameConversationManagerEndConversationPatch {
     private static string cachedConversationName = "unknown";
+    private static string endingConversationId = null;
 
     static bool Prefix(SimGameConversationManager __instance) {
       try {
-        // Capture conversation name before it gets cleared
+        // Capture conversation name and ID before it gets cleared
         if (Main.Settings != null && Main.Settings.EnableDebugLogging && Main.Settings.DebugLogConditions) {
           cachedConversationName = __instance?.thisConvoDef?.ui_name ?? "unknown";
         }
+        endingConversationId = __instance?.thisConvoDef?.idRef?.id;
 
         if (ProcessSideloadConversationPatch(__instance)) {
           // Override vanilla method if processing a sideload to allow for the sideload mechanic to work
@@ -46,7 +48,7 @@ namespace ExtendedConversations {
 
       if (SimGameConversationManagerEndConversationPatch.IsCustomRoomActive) {
         Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.Postfix] About to check and run delayed messages");
-        await CheckAndRunDelayedMessages();
+        await CheckAndRunDelayedMessages(endingConversationId);
       } else {
         Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.Postfix] Skipping check and run of delayed messages as NOT in a custom room.");
       }
@@ -61,18 +63,52 @@ namespace ExtendedConversations {
       }
     }
 
-    private static async System.Threading.Tasks.Task CheckAndRunDelayedMessages() {
+    private static async System.Threading.Tasks.Task CheckAndRunDelayedMessages(string originalConversationId, int recursionDepth = 0, int totalWaitTime = 0) {
       try {
-        await System.Threading.Tasks.Task.Delay(1500);
+        const int MAX_RECURSION_DEPTH = 10;
+        const int MAX_TOTAL_WAIT_TIME = 30000; // 30 seconds
+        const int DELAY_MS = 1500;
 
-        SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
-        if (simGame.interruptQueue.HasQueue) {
-          if (!simGame.interruptQueue.IsOpen && !simGame.ConversationManager.IsOn) {
+        // Safety check: prevent infinite recursion
+        if (recursionDepth >= MAX_RECURSION_DEPTH) {
+          Main.Logger.LogWarning($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Max recursion depth ({MAX_RECURSION_DEPTH}) reached. Forcing interrupt display.");
+          SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+          if (simGame.interruptQueue.HasQueue) {
             simGame.interruptQueue.DisplayIfAvailable();
+          }
+          return;
+        }
+
+        // Safety check: prevent infinite waiting
+        if (totalWaitTime >= MAX_TOTAL_WAIT_TIME) {
+          Main.Logger.LogWarning($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Max wait time ({MAX_TOTAL_WAIT_TIME}ms) reached. Forcing interrupt display.");
+          SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+          if (simGame.interruptQueue.HasQueue) {
+            simGame.interruptQueue.DisplayIfAvailable();
+          }
+          return;
+        }
+
+        await System.Threading.Tasks.Task.Delay(DELAY_MS);
+
+        SimGameState simGame2 = UnityGameInstance.Instance.Game.Simulation;
+        if (simGame2.interruptQueue.HasQueue) {
+          // Check if a different conversation has started
+          string currentConversationId = simGame2.ConversationManager?.thisConvoDef?.idRef?.id;
+          bool isDifferentConversation = !string.IsNullOrEmpty(currentConversationId) && currentConversationId != originalConversationId;
+
+          if (isDifferentConversation) {
+            Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Different conversation started (was: {originalConversationId}, now: {currentConversationId}). Aborting delayed message check.");
+            return;
+          }
+
+          if (!simGame2.interruptQueue.IsOpen && !simGame2.ConversationManager.IsOn) {
+            Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Displaying interrupt queue (depth: {recursionDepth}, waited: {totalWaitTime + DELAY_MS}ms)");
+            simGame2.interruptQueue.DisplayIfAvailable();
           } else {
-            if (simGame.interruptQueue.IsOpen) Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for interrupt popup to close.");
-            if (simGame.ConversationManager.IsOn) Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for conversation manager to finish.");
-            await CheckAndRunDelayedMessages();
+            if (simGame2.interruptQueue.IsOpen) Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for interrupt popup to close (depth: {recursionDepth}).");
+            if (simGame2.ConversationManager.IsOn) Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for conversation manager to finish (depth: {recursionDepth}).");
+            await CheckAndRunDelayedMessages(originalConversationId, recursionDepth + 1, totalWaitTime + DELAY_MS);
           }
         }
       } catch (Exception e) {
