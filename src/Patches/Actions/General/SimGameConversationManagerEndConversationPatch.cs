@@ -13,8 +13,15 @@ using BattleTech.UI;
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameConversationManager), "EndConversation")]
   public class SimGameConversationManagerEndConversationPatch {
+    private static string cachedConversationName = "unknown";
+
     static bool Prefix(SimGameConversationManager __instance) {
       try {
+        // Capture conversation name before it gets cleared
+        if (Main.Settings != null && Main.Settings.EnableDebugLogging && Main.Settings.DebugLogConditions) {
+          cachedConversationName = __instance?.thisConvoDef?.ui_name ?? "unknown";
+        }
+
         if (ProcessSideloadConversationPatch(__instance)) {
           // Override vanilla method if processing a sideload to allow for the sideload mechanic to work
           return false;
@@ -30,6 +37,13 @@ namespace ExtendedConversations {
     }
 
     static async void Postfix(SimGameConversationManager __instance) {
+      // Debug logging for conversation end (using cached name from Prefix)
+      if (Main.Settings != null && Main.Settings.EnableDebugLogging && Main.Settings.DebugLogConditions) {
+        Main.Logger.Log($"\n========================================");
+        Main.Logger.Log($"[EndConversation] Ended: {cachedConversationName}");
+        Main.Logger.Log($"========================================\n");
+      }
+
       if (SimGameConversationManagerEndConversationPatch.IsCustomRoomActive) {
         Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.Postfix] About to check and run delayed messages");
         await CheckAndRunDelayedMessages();

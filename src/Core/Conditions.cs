@@ -64,15 +64,15 @@ namespace ExtendedConversations.Core {
 
         switch (operation) {
           case 1: // less than
-            return (stat < compareValue);
+            return stat < compareValue;
           case 2: // equal to
-            return (stat == compareValue);
+            return stat == compareValue;
           case 3: // greater than
-            return (stat > compareValue);
+            return stat > compareValue;
           case 4: // less than or equal to
-            return (stat <= compareValue);
+            return stat <= compareValue;
           case 5: // greater than or equal to
-            return (stat >= compareValue);
+            return stat >= compareValue;
           default:
             return false;
         }
@@ -96,15 +96,15 @@ namespace ExtendedConversations.Core {
 
         switch (operation) {
           case 1: // less than
-            return (stat < compareValue);
+            return stat < compareValue;
           case 2: // equal to
-            return (stat == compareValue);
+            return stat == compareValue;
           case 3: // greater than
-            return (stat > compareValue);
+            return stat > compareValue;
           case 4: // less than or equal to
-            return (stat <= compareValue);
+            return stat <= compareValue;
           case 5: // greater than or equal to
-            return (stat >= compareValue);
+            return stat >= compareValue;
           default:
             return false;
         }
@@ -121,26 +121,31 @@ namespace ExtendedConversations.Core {
 
       switch (operation) {
         case 1: // less than
-          return (funds < moneyCheckValue);
+          return funds < moneyCheckValue;
         case 2: // equal to
-          return (funds == moneyCheckValue);
+          return funds == moneyCheckValue;
         case 3: // greater than
-          return (funds > moneyCheckValue);
+          return funds > moneyCheckValue;
         case 4: // less than or equal to
-          return (funds <= moneyCheckValue);
+          return funds <= moneyCheckValue;
         case 5: // greater than or equal to
-          return (funds >= moneyCheckValue);
+          return funds >= moneyCheckValue;
         default:
           return false;
       }
     }
 
     public static object EvaluateTimeline(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[EvaluateTimeline] Entered EvaluateTimeline condition.");
+
       int operation = env.ToInt(inputs[0]);
-      string date = env.ToString(inputs[1]); // format is like either 3050 (year only), 3050-02 (year and month) or 30-50-02-01 (year, month and day)
+      string date = env.ToString(inputs[1]); // format is like either 3050 (year only), 3050-02 (year and month) or 3050-02-01 (year, month and day)
       DateTime currentDate = UnityGameInstance.BattleTechGame.Simulation.CurrentDate;
       DateTime parsedDate;
       DateTime endDate;
+
+      // Debug logging - Log all inputs
+      Main.Logger.Log($"[EvaluateTimeline] TRIGGERED: operation={operation}, dateString='{date}', currentDate={currentDate.Date.ToString("yyyy-MM-dd")}");
 
       // Analyse 'date' variable
       switch (date.Length) {
@@ -150,25 +155,36 @@ namespace ExtendedConversations.Core {
             return false;
           }
 
-          parsedDate = new DateTime(yearOnly, 1, 1);
-          endDate = new DateTime(yearOnly, 12, 31);
+          parsedDate = new DateTime(yearOnly, 1, 1).Date;
+          endDate = new DateTime(yearOnly, 12, 31).Date;
+          Main.Logger.Log($"[EvaluateTimeline] Parsed year-only: parsedDate={parsedDate:yyyy-MM-dd}, endDate={endDate:yyyy-MM-dd}");
           break;
-        case 7: // year and month
-          if (!int.TryParse(date.Substring(0, 4), out int year) || !int.TryParse(date.Substring(5, 2), out int month)) {
-            Main.Logger.LogError($"[EvaluateTimeline] Year or month is not a valid integer. Provided date: '{date}'"); ;
+        case 6: // year and month (yyyy-M format like "3050-6")
+        case 7: // year and month (yyyy-MM format like "3050-06")
+          // Support both zero-padded (yyyy-MM) and non-zero-padded (yyyy-M) month formats
+          string[] yearMonthFormats = { "yyyy-MM", "yyyy-M" };
+          if (!DateTime.TryParseExact(date, yearMonthFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateTimeline] Year-month date is not in a valid format (yyyy-MM or yyyy-M). Provided date: '{date}'");
             return false;
           }
 
-          parsedDate = new DateTime(year, month, 1);
-          endDate = new DateTime(year, month, DateTime.DaysInMonth(year, month));
+          parsedDate = parsedDate.Date; // Strip time component
+          endDate = new DateTime(parsedDate.Year, parsedDate.Month, DateTime.DaysInMonth(parsedDate.Year, parsedDate.Month)).Date;
+          Main.Logger.Log($"[EvaluateTimeline] Parsed year-month: parsedDate={parsedDate:yyyy-MM-dd}, endDate={endDate:yyyy-MM-dd}");
           break;
-        case 10: // year, month and day
-          if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
-            Main.Logger.LogError($"[EvaluateTimeline] Date is not in a valid format (yyyy-MM-dd). Provided date: '{date}'");
+        case 8: // year, month and day (yyyy-M-d format like "3050-6-5")
+        case 9: // year, month and day (yyyy-MM-d or yyyy-M-dd format like "3050-06-5" or "3050-6-05")
+        case 10: // year, month and day (yyyy-MM-dd format like "3050-06-05")
+          // Support multiple full date formats (zero-padded and non-zero-padded)
+          string[] fullDateFormats = { "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+          if (!DateTime.TryParseExact(date, fullDateFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateTimeline] Date is not in a valid format (yyyy-MM-dd, yyyy-M-d, etc.). Provided date: '{date}'");
             return false;
           }
 
+          parsedDate = parsedDate.Date; // Strip time component
           endDate = parsedDate;
+          Main.Logger.Log($"[EvaluateTimeline] Parsed full date: parsedDate={parsedDate:yyyy-MM-dd}, endDate={endDate:yyyy-MM-dd}");
           break;
         default: {
           Main.Logger.LogError($"Invalid date format: {date}");
@@ -177,24 +193,41 @@ namespace ExtendedConversations.Core {
       }
 
       // Check the date vs. the current date and return true/false based on the operation check
+      bool result;
+      string operationName;
+
       switch (operation) {
         case 1: // On or Before
-          return currentDate.Date <= endDate;
+          operationName = "On or Before";
+          result = currentDate.Date <= endDate.Date;
+          break;
         case 2: // On or After
-          return currentDate.Date >= parsedDate;
+          operationName = "On or After";
+          result = currentDate.Date >= parsedDate.Date;
+          break;
         case 3: // Before
-          return currentDate.Date < parsedDate;
+          operationName = "Before";
+          result = currentDate.Date < parsedDate.Date;
+          break;
         case 4: // After
-          return currentDate.Date > endDate;
+          operationName = "After";
+          result = currentDate.Date > endDate.Date;
+          break;
         case 5: // On
-          return currentDate.Date >= parsedDate && currentDate.Date <= endDate;
+          operationName = "On";
+          result = currentDate.Date >= parsedDate.Date && currentDate.Date <= endDate.Date;
+          break;
         case 6: // Not On
-          return currentDate.Date < parsedDate || currentDate.Date > endDate;
-        default: {
+          operationName = "Not On";
+          result = currentDate.Date < parsedDate.Date || currentDate.Date > endDate.Date;
+          break;
+        default:
           Main.Logger.LogError($"[EvaluateTimeline] Invalid operation: {operation}");
           return false;
-        }
       }
+
+      Main.Logger.Log($"[EvaluateTimeline] RESULT: Operation '{operationName}' (op={operation}) returned {result}");
+      return result;
     }
   }
 }
