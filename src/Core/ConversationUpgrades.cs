@@ -79,6 +79,8 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Time Skip' action");
       tsOp = env.DeclareOp("EffectFunctions", "Time Skip", voidType, new TsOp.EvalDelegate(Actions.TimeSkip));
       tsOp.DeclareInput("days", intType);
+      tsOp.DeclareInput("disableCost", intType);
+      tsOp.DeclareInput("disablePopups", intType);
 
       // `Set Current System` action
       Main.Logger.Log("Declaring 'Set Current System' action");
