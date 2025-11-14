@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Harmony;
 
 using BattleTech;
 using BattleTech.UI;
@@ -10,15 +9,10 @@ using BattleTech.Data;
 using static BattleTech.SimGameEventTracker;
 
 using TScript;
-using TScript.Ops;
-
-using HBS.Logging;
 using HBS.Collections;
 
 using isogame;
 
-using ExtendedConversations;
-using ExtendedConversations.Utils;
 using ExtendedConversations.State;
 
 namespace ExtendedConversations.Core {
@@ -39,15 +33,28 @@ namespace ExtendedConversations.Core {
 
     public static object TimeSkip(TsEnvironment env, object[] inputs) {
       int daysToSkip = env.ToInt(inputs[0]);
-      Main.Logger.Log($"[TimeSkip] Triggered with days to skip '{daysToSkip}'");
+      bool disableCost = (inputs.Length >= 2) ? env.ToBool(inputs[1]) : false;
+      bool disablePopups = (inputs.Length >= 3) ? env.ToBool(inputs[2]) : false;
+
+      Main.Logger.Log($"[TimeSkip] Triggered with days to skip '{daysToSkip}', disableCost '{disableCost}', disablePopups '{disablePopups}'");
 
       SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      TimeSkipStateManager stateManager = TimeSkipStateManager.Instance;
 
-      for (int i = 0; i < daysToSkip; i++) {
-        simulation.OnDayPassed(0);
+      try {
+        stateManager.SetTimeSkipState(true, disableCost, disablePopups);
+
+        // Iterate with OnDayPassed(0) to ensure events, milestones, and travel updates process each day
+        // Using OnDayPassed(daysToSkip) would skip all event processing
+        for (int i = 0; i < daysToSkip; i++) {
+          simulation.OnDayPassed(0);
+        }
+
+        Main.Logger.Log($"[TimeSkip] Skip complete");
+      } finally {
+        stateManager.Reset();
       }
 
-      Main.Logger.Log($"[TimeSkip] Skip complete");
       return null;
     }
 
