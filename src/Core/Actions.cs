@@ -58,6 +58,72 @@ namespace ExtendedConversations.Core {
       return null;
     }
 
+    public static object TimeSkipToDate(TsEnvironment env, object[] inputs) {
+      string targetDateRaw = env.ToString(inputs[0]);
+      bool disableCost = (inputs.Length >= 2) ? env.ToBool(inputs[1]) : false;
+      bool disablePopups = (inputs.Length >= 3) ? env.ToBool(inputs[2]) : false;
+
+      Main.Logger.Log($"[TimeSkipToDate] Triggered with target date '{targetDateRaw}', disableCost '{disableCost}', disablePopups '{disablePopups}'");
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+      TimeSkipStateManager stateManager = TimeSkipStateManager.Instance;
+
+      DateTime parsedDate;
+      string[] supportedFormats = {
+        "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd",  // Full dates
+        "yyyy-MM", "yyyy-M"  // Year-month
+      };
+
+      if (!DateTime.TryParseExact(targetDateRaw, supportedFormats,
+          System.Globalization.CultureInfo.InvariantCulture,
+          System.Globalization.DateTimeStyles.None, out parsedDate)) {
+
+        // Fallback: try year-only format
+        if (targetDateRaw.Length == 4 && int.TryParse(targetDateRaw, out int yearOnly)) {
+          parsedDate = new DateTime(yearOnly, 1, 1);
+        } else {
+          Main.Logger.LogError($"[TimeSkipToDate] Invalid date format provided: '{targetDateRaw}'. Supported formats: 'yyyy-MM-dd', 'yyyy-MM', or 'yyyy' (e.g., '3050-06-15', '3050-06', or '3050')");
+          return null;
+        }
+      }
+
+      DateTime currentDate = simulation.CurrentDate;
+
+      // Validate: Check if target date is in the past
+      if (parsedDate < currentDate) {
+        Main.Logger.LogError($"[TimeSkipToDate] Target date '{parsedDate:yyyy-MM-dd}' is in the past (current date: '{currentDate:yyyy-MM-dd}'). Cannot skip backwards in time.");
+        return null;
+      }
+
+      // Validate: Check if target date is same as current
+      if (parsedDate.Date == currentDate.Date) {
+        Main.Logger.Log($"[TimeSkipToDate] Target date is the same as current date. No time skip needed.");
+        return null;
+      }
+
+      try {
+        stateManager.SetTimeSkipState(true, disableCost, disablePopups);
+
+        int daysToSkip = (int)(parsedDate.Date - currentDate.Date).TotalDays;
+        Main.Logger.Log($"[TimeSkipToDate] Skipping {daysToSkip} days from {currentDate:yyyy-MM-dd} to {parsedDate:yyyy-MM-dd}");
+
+        // Iterate with OnDayPassed(0) to ensure events, milestones, and travel updates process each day
+        // Using OnDayPassed(daysToSkip) would skip all event processing
+        while (simulation.CurrentDate.Date < parsedDate.Date) {
+          simulation.OnDayPassed(0);
+        }
+
+        Main.Logger.Log($"[TimeSkipToDate] Skip complete. Final date: '{simulation.CurrentDate:yyyy-MM-dd}'");
+      } catch (System.Exception ex) {
+        Main.Logger.LogError($"[TimeSkipToDate] Exception occurred during time skip: {ex.Message}");
+        Main.Logger.LogError($"[TimeSkipToDate] Stack trace: {ex.StackTrace}");
+      } finally {
+        stateManager.Reset();
+      }
+
+      return null;
+    }
+
     public static object SetCurrentSystem(TsEnvironment env, object[] inputs) {
       string systemName = env.ToString(inputs[0]);
       bool includeTravelTime = env.ToBool(inputs[1]);

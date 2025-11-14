@@ -1,16 +1,16 @@
 {
-  "key": "Time Skip",
-  "label": "Time skip",
+  "key": "Time Skip To Date",
+  "label": "Time skip to date",
   "view": ["label", "inputs"],
   "scope": "action",
   "category": "primary",
   "tooltip": "This time skip will run the vanilla mechanics (e.g. healing, repair, monthly costs etc)",
   "inputs": [
     {
-      "label": "Days",
-      "types": ["operation", "int"],
-      "tooltip": "Number of days to skip",
-      "viewlabel": "'{value}' days"
+      "label": "Date",
+      "types": ["operation", "string"],
+      "tooltip": "Target date to skip to. Format: yyyy-MM-dd, yyyy-MM, or yyyy (e.g., 3050-06-15, 3050-06, or 3050)",
+      "viewlabel": "'{value}'"
     },
     {
       "label": "Disable Cost",
