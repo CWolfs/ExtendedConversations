@@ -1,14 +1,4 @@
-using UnityEngine;
-using System;
-using Harmony;
-
-using BattleTech;
 using TScript;
-using TScript.Ops;
-using HBS.Logging;
-using HBS.Collections;
-
-using ExtendedConversations;
 
 namespace ExtendedConversations.Core {
   public class ConversationUpgrades {
@@ -79,6 +69,13 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Time Skip' action");
       tsOp = env.DeclareOp("EffectFunctions", "Time Skip", voidType, new TsOp.EvalDelegate(Actions.TimeSkip));
       tsOp.DeclareInput("days", intType);
+      tsOp.DeclareInput("disableCost", intType);
+      tsOp.DeclareInput("disablePopups", intType);
+
+      // `TimeSkipToDate` action
+      Main.Logger.Log("Declaring 'Time Skip To Date' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Time Skip To Date", voidType, new TsOp.EvalDelegate(Actions.TimeSkipToDate));
+      tsOp.DeclareInput("date", stringType);
       tsOp.DeclareInput("disableCost", intType);
       tsOp.DeclareInput("disablePopups", intType);
 
