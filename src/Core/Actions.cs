@@ -2,13 +2,17 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 using BattleTech;
 using BattleTech.UI;
 using BattleTech.Data;
+using BattleTech.Framework;
 using static BattleTech.SimGameEventTracker;
 
 using TScript;
+using HBS;
 using HBS.Collections;
 
 using isogame;
@@ -528,6 +532,187 @@ namespace ExtendedConversations.Core {
       simulation.ConversationManager.SetViewscreen(null);
 
       return null;
+    }
+
+    public static object TakeContract(TsEnvironment env, object[] inputs) {
+      // Parse input parameters
+      string contractId = env.ToString(inputs[0]);
+      string employerInput = (inputs.Length >= 2) ? env.ToString(inputs[1]) : null;
+      string targetInput = (inputs.Length >= 3) ? env.ToString(inputs[2]) : null;
+      string targetSystemInput = (inputs.Length >= 4) ? env.ToString(inputs[3]) : null;
+      string mapIdInput = (inputs.Length >= 5) ? env.ToString(inputs[4]) : null;
+      int? difficultyInput = (inputs.Length >= 6 && env.ToInt(inputs[5]) > 0) ? (int?)env.ToInt(inputs[5]) : null;
+      bool closeConversation = (inputs.Length >= 7) ? env.ToBool(inputs[6]) : false;
+
+      // Handle TScript's empty string → "0" conversion
+      if (employerInput == "0") employerInput = null;
+      if (targetInput == "0") targetInput = null;
+      if (targetSystemInput == "0") targetSystemInput = null;
+      if (mapIdInput == "0") mapIdInput = null;
+
+      // Handle regular null/empty strings
+      if (string.IsNullOrEmpty(employerInput)) employerInput = null;
+      if (string.IsNullOrEmpty(targetInput)) targetInput = null;
+      if (string.IsNullOrEmpty(targetSystemInput)) targetSystemInput = null;
+      if (string.IsNullOrEmpty(mapIdInput)) mapIdInput = null;
+
+      Main.Logger.Log($"[TakeContract] Starting contract '{contractId}' | Employer: '{employerInput ?? "random"}' | Target: '{targetInput ?? "random"}' | System: '{targetSystemInput ?? "current"}' | Map: '{mapIdInput ?? "random"}' | Difficulty: '{difficultyInput?.ToString() ?? "random"}' | Close Conversation: '{closeConversation}'");
+
+      SimGameState simulation = UnityGameInstance.BattleTechGame.Simulation;
+
+      try {
+        if (!simulation.DataManager.ContractOverrides.Exists(contractId)) {
+          Main.Logger.LogError($"[TakeContract] Contract override '{contractId}' not found in DataManager");
+          return null;
+        }
+
+        ContractOverride contractOverride = simulation.DataManager.ContractOverrides.Get(contractId).Copy();
+        Main.Logger.Log($"[TakeContract] Loaded contract override: {contractOverride.contractName}");
+
+        StarSystem targetSystem = null;
+        if (!string.IsNullOrEmpty(targetSystemInput)) {
+          string validatedSystemId = simulation.GetValidatedSystemString(targetSystemInput);
+          if (simulation.StarSystemDictionary.ContainsKey(validatedSystemId)) {
+            targetSystem = simulation.StarSystemDictionary[validatedSystemId];
+          } else {
+            Main.Logger.LogWarning($"[TakeContract] Target system '{targetSystemInput}' not found, using current system");
+            targetSystem = simulation.CurSystem;
+          }
+        } else {
+          targetSystem = simulation.CurSystem;
+        }
+        Main.Logger.Log($"[TakeContract] Target system: {targetSystem.Name}");
+
+        GameContext gameContext = new GameContext(simulation.Context);
+        gameContext.SetObject(GameContextObjectTagEnum.TargetStarSystem, targetSystem);
+
+        // Determine employer and target factions with randomization
+        FactionValue employer;
+        FactionValue target;
+        FactionValue employerAlly = FactionEnumeration.GetInvalidUnsetFactionValue();
+        FactionValue targetAlly = FactionEnumeration.GetInvalidUnsetFactionValue();
+
+        if (!string.IsNullOrEmpty(employerInput)) {
+          // Use specified employer
+          employer = FactionEnumeration.GetFactionByName(employerInput);
+          if (employer.IsInvalidUnset) {
+            Main.Logger.LogWarning($"[TakeContract] Invalid employer faction '{employerInput}', using contract override default");
+            employer = contractOverride.employerTeam.FactionValue;
+          }
+        } else {
+          // Random valid employer for the system
+          employer = ContractHelpers.GetRandomEmployerForSystem(simulation, targetSystem);
+          Main.Logger.Log($"[TakeContract] Selected random employer: {employer.Name}");
+        }
+
+        if (!string.IsNullOrEmpty(targetInput)) {
+          target = FactionEnumeration.GetFactionByName(targetInput);
+          if (target.IsInvalidUnset) {
+            Main.Logger.LogWarning($"[TakeContract] Invalid target faction '{targetInput}', using contract override default");
+            target = contractOverride.targetTeam.FactionValue;
+          }
+        } else {
+          TargetSelection participants = ContractHelpers.GetRandomTargetForEmployer(simulation, targetSystem, employer);
+          target = participants.Target;
+          targetAlly = participants.TargetAlly;
+          employerAlly = participants.EmployerAlly;
+          Main.Logger.Log($"[TakeContract] Selected random target: {target.Name}");
+        }
+
+        // 6. Determine map and encounter
+        MapSelection selectedMap = ContractHelpers.SelectMapForContract(mapIdInput, targetSystem, contractOverride.ContractTypeValue);
+        string mapName = selectedMap.MapName;
+        string mapPath = selectedMap.MapPath;
+        Biome.BIOMESKIN biomeSkin = selectedMap.BiomeSkin;
+        string encounterGuid = selectedMap.EncounterGuid;
+
+        int difficulty;
+        if (difficultyInput.HasValue) {
+          difficulty = difficultyInput.Value;
+        } else {
+          difficulty = ContractHelpers.GetPlayerAppropriateDifficulty(simulation, targetSystem);
+          Main.Logger.Log($"[TakeContract] Calculated player-appropriate difficulty: {difficulty}");
+        }
+
+        // Create Contract instance
+        Contract contract = new Contract(
+          mapName,
+          mapPath,
+          encounterGuid,
+          contractOverride.ContractTypeValue,
+          UnityGameInstance.BattleTechGame,
+          contractOverride,
+          gameContext,
+          fromSim: true,
+          difficulty
+        );
+
+        Main.Logger.Log($"[TakeContract] Created contract instance");
+
+        // PrepContract - Set up factions, biome, difficulty, rewards
+        FactionValue neutralToAll = FactionEnumeration.GetInvalidUnsetFactionValue();
+        FactionValue hostileToAll = FactionEnumeration.GetInvalidUnsetFactionValue();
+
+        simulation.PrepContract(
+          contract,
+          employer,
+          employerAlly,
+          target,
+          targetAlly,
+          neutralToAll,
+          hostileToAll,
+          biomeSkin,
+          0, // presetSeed = 0 for random generation
+          targetSystem
+        );
+
+        Main.Logger.Log($"[TakeContract] Prepared contract with factions and settings");
+
+        // If closeConversation is true, exit conversation first to allow UI access
+        if (closeConversation && simulation.ConversationManager.IsOn) {
+          Main.Logger.Log($"[TakeContract] Closing conversation and scheduling contract display");
+
+          // Schedule contract display after conversation ends
+          simulation.InterruptQueue.QueueGenericPopup(
+            "Contract Starting",
+            "Preparing contract negotiation..."
+          );
+
+          // Use coroutine to execute after conversation closes
+          UnityGameInstance.Instance.StartCoroutine(TakeContractAfterConversation(simulation, contract));
+
+          // End the conversation (no reflection needed with Krafs.Publicizer)
+          simulation.ConversationManager.EndConversation();
+        } else {
+          // Immediate execution - show curtain and take contract
+          UIManager uiManager = LazySingletonBehavior<UIManager>.Instance;
+          uiManager.SetFaderColor(uiManager.UILookAndColorConstants.FadeToHalfBlack, UIManagerFader.FadePosition.FadeInBack, UIManagerRootType.UIRoot);
+          Main.Logger.Log($"[TakeContract] Displayed UI curtain overlay");
+
+          simulation.ForceTakeContract(contract, breadcrumb: false);
+          Main.Logger.Log($"[TakeContract] Successfully force-started contract '{contractOverride.contractName}'");
+        }
+      } catch (Exception ex) {
+        Main.Logger.LogError($"[TakeContract] Error starting contract: {ex.Message}");
+        Main.Logger.LogError($"[TakeContract] Stack trace: {ex.StackTrace}");
+      }
+
+      return null;
+    }
+
+    private static IEnumerator TakeContractAfterConversation(SimGameState simulation, Contract contract) {
+      // Wait one frame for conversation to fully close
+      yield return null;
+
+      Main.Logger.Log($"[TakeContract] Conversation closed, displaying contract");
+
+      // Show the black semi-transparent curtain
+      UIManager uiManager = LazySingletonBehavior<UIManager>.Instance;
+      uiManager.SetFaderColor(uiManager.UILookAndColorConstants.FadeToHalfBlack, UIManagerFader.FadePosition.FadeInBack, UIManagerRootType.UIRoot);
+      Main.Logger.Log($"[TakeContract] Displayed UI curtain overlay");
+
+      // Now take the contract with UI properly initialized
+      simulation.ForceTakeContract(contract, breadcrumb: false);
     }
   }
 }

@@ -155,6 +155,18 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Reset BattleTech Viewscreen' action");
       tsOp = env.DeclareOp("EffectFunctions", "Reset BattleTech Viewscreen", voidType, new TsOp.EvalDelegate(Actions.ResetBattleTechViewscreen));
 
+      // 'Take Contract' action
+      Main.Logger.Log("Declaring 'Take Contract' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Take Contract", voidType, new TsOp.EvalDelegate(Actions.TakeContract));
+      tsOp.DeclareInput("contractId", stringType);
+      tsOp.DeclareInput("employer", stringType);
+      tsOp.DeclareInput("target", stringType);
+      tsOp.DeclareInput("targetSystem", stringType);
+      tsOp.DeclareInput("mapId", stringType);
+      tsOp.DeclareInput("difficulty", intType);
+      tsOp.DeclareInput("closeConversation", intType);
+
+
       /*
       * VALUE GETTERS
       */
