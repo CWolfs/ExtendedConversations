@@ -13,6 +13,46 @@ using ExtendedConversations.Utils;
 
 namespace ExtendedConversations.Core {
   public class Conditions {
+    // Helper method to parse flexible date formats (yyyy, yyyy-MM, yyyy-M, yyyy-MM-dd, etc.)
+    private static bool TryParseFlexibleDate(string dateString, out DateTime parsedDate) {
+      parsedDate = DateTime.MinValue;
+
+      if (string.IsNullOrEmpty(dateString)) {
+        return false;
+      }
+
+      switch (dateString.Length) {
+        case 4: // year only
+          if (int.TryParse(dateString, out int yearOnly)) {
+            parsedDate = new DateTime(yearOnly, 1, 1).Date;
+            return true;
+          }
+          return false;
+
+        case 6: // year and month (yyyy-M format like "3050-6")
+        case 7: // year and month (yyyy-MM format like "3050-06")
+          string[] yearMonthFormats = { "yyyy-MM", "yyyy-M" };
+          if (DateTime.TryParseExact(dateString, yearMonthFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            parsedDate = parsedDate.Date; // Strip time component
+            return true;
+          }
+          return false;
+
+        case 8: // year, month and day (yyyy-M-d format like "3050-6-5")
+        case 9: // year, month and day (yyyy-MM-d or yyyy-M-dd format)
+        case 10: // year, month and day (yyyy-MM-dd format like "3050-06-05")
+          string[] fullDateFormats = { "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+          if (DateTime.TryParseExact(dateString, fullDateFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            parsedDate = parsedDate.Date; // Strip time component
+            return true;
+          }
+          return false;
+
+        default:
+          return false;
+      }
+    }
+
     public static object EvaluateTagForCurrentSystem(TsEnvironment env, object[] inputs) {
       bool flag = env.ToBool(inputs[0]);
       string value = env.ToString(inputs[1]);
@@ -29,7 +69,7 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       int operation = env.ToInt(inputs[2]);
       string compareValue = env.ToString(inputs[3]);
-      Main.Logger.Log($"[EvaluateBattleTechString] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}");
+      Main.Logger.Log($"[EvaluateBattleTechString] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}'");
 
       StatCollection statCollection = SimHelper.GetStatCollection(statScope);
 
@@ -37,11 +77,55 @@ namespace ExtendedConversations.Core {
         string stat = statCollection.GetValue<string>(statName);
 
         switch (operation) {
-          case 1: // equal to
-            return (stat == compareValue);
-          case 2: // not equal to
-            return (stat != compareValue);
+          case 1: // equal to (string comparison)
+            Main.Logger.Log($"[EvaluateBattleTechString] String comparison: '{stat}' == '{compareValue}' = {stat == compareValue}");
+            return stat == compareValue;
+          case 2: // not equal to (string comparison)
+            Main.Logger.Log($"[EvaluateBattleTechString] String comparison: '{stat}' != '{compareValue}' = {stat != compareValue}");
+            return stat != compareValue;
+          case 3: // less than (date comparison)
+          case 4: // less than or equal to (date comparison)
+          case 5: // greater than (date comparison)
+          case 6: // greater than or equal to (date comparison)
+            // Attempt to parse both values as dates
+            if (!TryParseFlexibleDate(stat, out DateTime statDate)) {
+              Main.Logger.LogError($"[EvaluateBattleTechString] Failed to parse stat value '{stat}' as a date for operation {operation}. Expected format: yyyy, yyyy-MM, or yyyy-MM-dd");
+              return false;
+            }
+            if (!TryParseFlexibleDate(compareValue, out DateTime compareDate)) {
+              Main.Logger.LogError($"[EvaluateBattleTechString] Failed to parse compare value '{compareValue}' as a date for operation {operation}. Expected format: yyyy, yyyy-MM, or yyyy-MM-dd");
+              return false;
+            }
+
+            // Perform date comparison
+            bool result;
+            string operationName;
+            switch (operation) {
+              case 3: // less than
+                operationName = "Less Than";
+                result = statDate < compareDate;
+                break;
+              case 4: // less than or equal to
+                operationName = "Less Than Or Equal To";
+                result = statDate <= compareDate;
+                break;
+              case 5: // greater than
+                operationName = "Greater Than";
+                result = statDate > compareDate;
+                break;
+              case 6: // greater than or equal to
+                operationName = "Greater Than Or Equal To";
+                result = statDate >= compareDate;
+                break;
+              default:
+                Main.Logger.LogError($"[EvaluateBattleTechString] Invalid operation: {operation}");
+                return false;
+            }
+
+            Main.Logger.Log($"[EvaluateBattleTechString] Date comparison: '{stat}' ({statDate:yyyy-MM-dd}) {operationName} '{compareValue}' ({compareDate:yyyy-MM-dd}) = {result}");
+            return result;
           default:
+            Main.Logger.LogError($"[EvaluateBattleTechString] Invalid operation: {operation}");
             return false;
         }
       }
