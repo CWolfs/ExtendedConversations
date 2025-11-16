@@ -29,7 +29,7 @@ namespace ExtendedConversations.Core {
       string statName = env.ToString(inputs[1]);
       int operation = env.ToInt(inputs[2]);
       string compareValue = env.ToString(inputs[3]);
-      Main.Logger.Log($"[EvaluateBattleTechString] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}");
+      Main.Logger.Log($"[EvaluateBattleTechString] Triggered with scope '{statScope}', statName '{statName}', operation '{operation}', compareValue '{compareValue}'");
 
       StatCollection statCollection = SimHelper.GetStatCollection(statScope);
 
@@ -37,11 +37,71 @@ namespace ExtendedConversations.Core {
         string stat = statCollection.GetValue<string>(statName);
 
         switch (operation) {
-          case 1: // equal to
-            return (stat == compareValue);
-          case 2: // not equal to
-            return (stat != compareValue);
+          case 1: // equal to (string comparison with fuzzy date fallback)
+            bool stringEqual = stat == compareValue;
+            Main.Logger.Log($"[EvaluateBattleTechString] String comparison: '{stat}' == '{compareValue}' = {stringEqual}");
+
+            // If strings are not equal, try fuzzy date comparison
+            if (!stringEqual && DateHelper.TryFuzzyDateComparison(stat, compareValue, out bool datesEqual)) {
+              Main.Logger.Log($"[EvaluateBattleTechString] Fuzzy date comparison: '{stat}' == '{compareValue}' = {datesEqual}");
+              return datesEqual;
+            }
+
+            return stringEqual;
+
+          case 2: // not equal to (string comparison with fuzzy date fallback)
+            bool stringNotEqual = stat != compareValue;
+            Main.Logger.Log($"[EvaluateBattleTechString] String comparison: '{stat}' != '{compareValue}' = {stringNotEqual}");
+
+            // If strings are equal, verify with fuzzy date comparison (they might still be equal as dates)
+            // If strings are not equal, check if they might be equal as dates (if so, return false for "not equal")
+            if (DateHelper.TryFuzzyDateComparison(stat, compareValue, out bool datesEqualCheck)) {
+              bool datesNotEqual = !datesEqualCheck;
+              Main.Logger.Log($"[EvaluateBattleTechString] Fuzzy date comparison: '{stat}' != '{compareValue}' = {datesNotEqual}");
+              return datesNotEqual;
+            }
+
+            // If can't parse as dates, fall back to string comparison
+            return stringNotEqual;
+          case 3: // less than (fuzzy date comparison)
+          case 4: // less than or equal to (fuzzy date comparison)
+          case 5: // greater than (fuzzy date comparison)
+          case 6: // greater than or equal to (fuzzy date comparison)
+            // Attempt fuzzy date comparison
+            if (!DateHelper.TryFuzzyDateCompare(stat, compareValue, out int compareResult)) {
+              Main.Logger.LogError($"[EvaluateBattleTechString] Failed to parse stat value '{stat}' or compare value '{compareValue}' as dates for operation {operation}. Expected format: yyyy, yyyy-MM, or yyyy-MM-dd");
+              return false;
+            }
+
+            // Perform fuzzy date comparison based on operation
+            bool result;
+            string operationName;
+            switch (operation) {
+              case 3: // less than
+                operationName = "Less Than";
+                result = compareResult < 0;
+                break;
+              case 4: // less than or equal to
+                operationName = "Less Than Or Equal To";
+                result = compareResult <= 0;
+                break;
+              case 5: // greater than
+                operationName = "Greater Than";
+                result = compareResult > 0;
+                break;
+              case 6: // greater than or equal to
+                operationName = "Greater Than Or Equal To";
+                result = compareResult >= 0;
+                break;
+              default:
+                Main.Logger.LogError($"[EvaluateBattleTechString] Invalid operation: {operation}");
+                return false;
+            }
+
+            Main.Logger.Log($"[EvaluateBattleTechString] Fuzzy date comparison: '{stat}' {operationName} '{compareValue}' (compareResult={compareResult}) = {result}");
+            return result;
           default:
+            Main.Logger.LogError($"[EvaluateBattleTechString] Invalid operation: {operation}");
             return false;
         }
       }
@@ -64,15 +124,15 @@ namespace ExtendedConversations.Core {
 
         switch (operation) {
           case 1: // less than
-            return (stat < compareValue);
+            return stat < compareValue;
           case 2: // equal to
-            return (stat == compareValue);
+            return stat == compareValue;
           case 3: // greater than
-            return (stat > compareValue);
+            return stat > compareValue;
           case 4: // less than or equal to
-            return (stat <= compareValue);
+            return stat <= compareValue;
           case 5: // greater than or equal to
-            return (stat >= compareValue);
+            return stat >= compareValue;
           default:
             return false;
         }
@@ -96,15 +156,15 @@ namespace ExtendedConversations.Core {
 
         switch (operation) {
           case 1: // less than
-            return (stat < compareValue);
+            return stat < compareValue;
           case 2: // equal to
-            return (stat == compareValue);
+            return stat == compareValue;
           case 3: // greater than
-            return (stat > compareValue);
+            return stat > compareValue;
           case 4: // less than or equal to
-            return (stat <= compareValue);
+            return stat <= compareValue;
           case 5: // greater than or equal to
-            return (stat >= compareValue);
+            return stat >= compareValue;
           default:
             return false;
         }
@@ -121,26 +181,31 @@ namespace ExtendedConversations.Core {
 
       switch (operation) {
         case 1: // less than
-          return (funds < moneyCheckValue);
+          return funds < moneyCheckValue;
         case 2: // equal to
-          return (funds == moneyCheckValue);
+          return funds == moneyCheckValue;
         case 3: // greater than
-          return (funds > moneyCheckValue);
+          return funds > moneyCheckValue;
         case 4: // less than or equal to
-          return (funds <= moneyCheckValue);
+          return funds <= moneyCheckValue;
         case 5: // greater than or equal to
-          return (funds >= moneyCheckValue);
+          return funds >= moneyCheckValue;
         default:
           return false;
       }
     }
 
     public static object EvaluateTimeline(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[EvaluateTimeline] Entered EvaluateTimeline condition.");
+
       int operation = env.ToInt(inputs[0]);
-      string date = env.ToString(inputs[1]); // format is like either 3050 (year only), 3050-02 (year and month) or 30-50-02-01 (year, month and day)
+      string date = env.ToString(inputs[1]); // format is like either 3050 (year only), 3050-02 (year and month) or 3050-02-01 (year, month and day)
       DateTime currentDate = UnityGameInstance.BattleTechGame.Simulation.CurrentDate;
       DateTime parsedDate;
       DateTime endDate;
+
+      // Debug logging - Log all inputs
+      Main.Logger.Log($"[EvaluateTimeline] TRIGGERED: operation={operation}, dateString='{date}', currentDate={currentDate.Date.ToString("yyyy-MM-dd")}");
 
       // Analyse 'date' variable
       switch (date.Length) {
@@ -150,25 +215,36 @@ namespace ExtendedConversations.Core {
             return false;
           }
 
-          parsedDate = new DateTime(yearOnly, 1, 1);
-          endDate = new DateTime(yearOnly, 12, 31);
+          parsedDate = new DateTime(yearOnly, 1, 1).Date;
+          endDate = new DateTime(yearOnly, 12, 31).Date;
+          Main.Logger.Log($"[EvaluateTimeline] Parsed year-only: parsedDate={parsedDate:yyyy-MM-dd}, endDate={endDate:yyyy-MM-dd}");
           break;
-        case 7: // year and month
-          if (!int.TryParse(date.Substring(0, 4), out int year) || !int.TryParse(date.Substring(5, 2), out int month)) {
-            Main.Logger.LogError($"[EvaluateTimeline] Year or month is not a valid integer. Provided date: '{date}'"); ;
+        case 6: // year and month (yyyy-M format like "3050-6")
+        case 7: // year and month (yyyy-MM format like "3050-06")
+          // Support both zero-padded (yyyy-MM) and non-zero-padded (yyyy-M) month formats
+          string[] yearMonthFormats = { "yyyy-MM", "yyyy-M" };
+          if (!DateTime.TryParseExact(date, yearMonthFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateTimeline] Year-month date is not in a valid format (yyyy-MM or yyyy-M). Provided date: '{date}'");
             return false;
           }
 
-          parsedDate = new DateTime(year, month, 1);
-          endDate = new DateTime(year, month, DateTime.DaysInMonth(year, month));
+          parsedDate = parsedDate.Date; // Strip time component
+          endDate = new DateTime(parsedDate.Year, parsedDate.Month, DateTime.DaysInMonth(parsedDate.Year, parsedDate.Month)).Date;
+          Main.Logger.Log($"[EvaluateTimeline] Parsed year-month: parsedDate={parsedDate:yyyy-MM-dd}, endDate={endDate:yyyy-MM-dd}");
           break;
-        case 10: // year, month and day
-          if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
-            Main.Logger.LogError($"[EvaluateTimeline] Date is not in a valid format (yyyy-MM-dd). Provided date: '{date}'");
+        case 8: // year, month and day (yyyy-M-d format like "3050-6-5")
+        case 9: // year, month and day (yyyy-MM-d or yyyy-M-dd format like "3050-06-5" or "3050-6-05")
+        case 10: // year, month and day (yyyy-MM-dd format like "3050-06-05")
+          // Support multiple full date formats (zero-padded and non-zero-padded)
+          string[] fullDateFormats = { "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+          if (!DateTime.TryParseExact(date, fullDateFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateTimeline] Date is not in a valid format (yyyy-MM-dd, yyyy-M-d, etc.). Provided date: '{date}'");
             return false;
           }
 
+          parsedDate = parsedDate.Date; // Strip time component
           endDate = parsedDate;
+          Main.Logger.Log($"[EvaluateTimeline] Parsed full date: parsedDate={parsedDate:yyyy-MM-dd}, endDate={endDate:yyyy-MM-dd}");
           break;
         default: {
           Main.Logger.LogError($"Invalid date format: {date}");
@@ -177,24 +253,133 @@ namespace ExtendedConversations.Core {
       }
 
       // Check the date vs. the current date and return true/false based on the operation check
+      bool result;
+      string operationName;
+
       switch (operation) {
         case 1: // On or Before
-          return currentDate.Date <= endDate;
+          operationName = "On or Before";
+          result = currentDate.Date <= endDate.Date;
+          break;
         case 2: // On or After
-          return currentDate.Date >= parsedDate;
+          operationName = "On or After";
+          result = currentDate.Date >= parsedDate.Date;
+          break;
         case 3: // Before
-          return currentDate.Date < parsedDate;
+          operationName = "Before";
+          result = currentDate.Date < parsedDate.Date;
+          break;
         case 4: // After
-          return currentDate.Date > endDate;
+          operationName = "After";
+          result = currentDate.Date > endDate.Date;
+          break;
         case 5: // On
-          return currentDate.Date >= parsedDate && currentDate.Date <= endDate;
+          operationName = "On";
+          result = currentDate.Date >= parsedDate.Date && currentDate.Date <= endDate.Date;
+          break;
         case 6: // Not On
-          return currentDate.Date < parsedDate || currentDate.Date > endDate;
-        default: {
+          operationName = "Not On";
+          result = currentDate.Date < parsedDate.Date || currentDate.Date > endDate.Date;
+          break;
+        default:
           Main.Logger.LogError($"[EvaluateTimeline] Invalid operation: {operation}");
+          return false;
+      }
+
+      Main.Logger.Log($"[EvaluateTimeline] RESULT: Operation '{operationName}' (op={operation}) returned {result}");
+      return result;
+    }
+
+    public static object EvaluateDaysSinceDate(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[EvaluateDaysSinceDate] Entered EvaluateDaysSinceDate condition.");
+
+      string date = env.ToString(inputs[0]); // format is like either 3050 (year only), 3050-02 (year and month) or 3050-02-01 (year, month and day)
+      int operation = env.ToInt(inputs[1]);
+      int compareDays = env.ToInt(inputs[2]);
+      DateTime currentDate = UnityGameInstance.BattleTechGame.Simulation.CurrentDate;
+      DateTime parsedDate;
+
+      // Debug logging - Log all inputs
+      Main.Logger.Log($"[EvaluateDaysSinceDate] TRIGGERED: dateString='{date}', operation={operation}, compareDays={compareDays}, currentDate={currentDate.Date.ToString("yyyy-MM-dd")}");
+
+      // Parse date with flexible format support
+      switch (date.Length) {
+        case 4: // year only
+          if (!int.TryParse(date, out int yearOnly)) {
+            Main.Logger.LogError($"[EvaluateDaysSinceDate] Year is not a valid integer. Provided date: '{date}'");
+            return false;
+          }
+
+          parsedDate = new DateTime(yearOnly, 1, 1).Date;
+          Main.Logger.Log($"[EvaluateDaysSinceDate] Parsed year-only: parsedDate={parsedDate:yyyy-MM-dd}");
+          break;
+        case 6: // year and month (yyyy-M format like "3050-6")
+        case 7: // year and month (yyyy-MM format like "3050-06")
+          // Support both zero-padded (yyyy-MM) and non-zero-padded (yyyy-M) month formats
+          string[] yearMonthFormats = { "yyyy-MM", "yyyy-M" };
+          if (!DateTime.TryParseExact(date, yearMonthFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateDaysSinceDate] Year-month date is not in a valid format (yyyy-MM or yyyy-M). Provided date: '{date}'");
+            return false;
+          }
+
+          parsedDate = parsedDate.Date; // Strip time component
+          Main.Logger.Log($"[EvaluateDaysSinceDate] Parsed year-month: parsedDate={parsedDate:yyyy-MM-dd}");
+          break;
+        case 8: // year, month and day (yyyy-M-d format like "3050-6-5")
+        case 9: // year, month and day (yyyy-MM-d or yyyy-M-dd format like "3050-06-5" or "3050-6-05")
+        case 10: // year, month and day (yyyy-MM-dd format like "3050-06-05")
+          // Support multiple full date formats (zero-padded and non-zero-padded)
+          string[] fullDateFormats = { "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+          if (!DateTime.TryParseExact(date, fullDateFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateDaysSinceDate] Date is not in a valid format (yyyy-MM-dd, yyyy-M-d, etc.). Provided date: '{date}'");
+            return false;
+          }
+
+          parsedDate = parsedDate.Date; // Strip time component
+          Main.Logger.Log($"[EvaluateDaysSinceDate] Parsed full date: parsedDate={parsedDate:yyyy-MM-dd}");
+          break;
+        default: {
+          Main.Logger.LogError($"[EvaluateDaysSinceDate] Invalid date format: {date}");
           return false;
         }
       }
+
+      // Calculate days since the parsed date
+      int daysSince = (int)(currentDate.Date - parsedDate.Date).TotalDays;
+      Main.Logger.Log($"[EvaluateDaysSinceDate] Days since {parsedDate:yyyy-MM-dd}: {daysSince}");
+
+      // Perform comparison based on operation
+      bool result;
+      string operationName;
+
+      switch (operation) {
+        case 1: // less than
+          operationName = "Less Than";
+          result = daysSince < compareDays;
+          break;
+        case 2: // equal to
+          operationName = "Equal To";
+          result = daysSince == compareDays;
+          break;
+        case 3: // greater than
+          operationName = "Greater Than";
+          result = daysSince > compareDays;
+          break;
+        case 4: // less than or equal to
+          operationName = "Less Than Or Equal To";
+          result = daysSince <= compareDays;
+          break;
+        case 5: // greater than or equal to
+          operationName = "Greater Than Or Equal To";
+          result = daysSince >= compareDays;
+          break;
+        default:
+          Main.Logger.LogError($"[EvaluateDaysSinceDate] Invalid operation: {operation}");
+          return false;
+      }
+
+      Main.Logger.Log($"[EvaluateDaysSinceDate] RESULT: Operation '{operationName}' (op={operation}) comparing {daysSince} days against {compareDays} returned {result}");
+      return result;
     }
   }
 }

@@ -75,5 +75,15 @@ namespace ExtendedConversations.Core {
       Main.Logger.LogError($"[GetBattleTechFloat] Stat {statName} does not exist for conversation operation.");
       return null;
     }
+
+    public static object GetCurrentDate(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[GetCurrentDate] Triggered");
+
+      DateTime currentDate = UnityGameInstance.BattleTechGame.Simulation.CurrentDate;
+      string formattedDate = currentDate.ToString("yyyy-MM-dd");
+
+      Main.Logger.Log($"[GetCurrentDate] Returning date: {formattedDate}");
+      return formattedDate;
+    }
   }
 }

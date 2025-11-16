@@ -1,14 +1,4 @@
-using UnityEngine;
-using System;
-using Harmony;
-
-using BattleTech;
 using TScript;
-using TScript.Ops;
-using HBS.Logging;
-using HBS.Collections;
-
-using ExtendedConversations;
 
 namespace ExtendedConversations.Core {
   public class ConversationUpgrades {
@@ -71,6 +61,13 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("operation", intType);
       tsOp.DeclareInput("date", stringType);
 
+      // Evaluate Days Since Date
+      Main.Logger.Log("Declaring 'Evaluate Days Since Date' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate Days Since Date", boolType, new TsOp.EvalDelegate(Conditions.EvaluateDaysSinceDate));
+      tsOp.DeclareInput("date", stringType);
+      tsOp.DeclareInput("operation", intType);
+      tsOp.DeclareInput("days", intType);
+
       /*
       * ACTIONS
       */
@@ -79,6 +76,15 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Time Skip' action");
       tsOp = env.DeclareOp("EffectFunctions", "Time Skip", voidType, new TsOp.EvalDelegate(Actions.TimeSkip));
       tsOp.DeclareInput("days", intType);
+      tsOp.DeclareInput("disableCost", intType);
+      tsOp.DeclareInput("disablePopups", intType);
+
+      // `TimeSkipToDate` action
+      Main.Logger.Log("Declaring 'Time Skip To Date' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Time Skip To Date", voidType, new TsOp.EvalDelegate(Actions.TimeSkipToDate));
+      tsOp.DeclareInput("date", stringType);
+      tsOp.DeclareInput("disableCost", intType);
+      tsOp.DeclareInput("disablePopups", intType);
 
       // `Set Current System` action
       Main.Logger.Log("Declaring 'Set Current System' action");
@@ -152,6 +158,22 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log("Declaring 'Trigger Random Event' action");
       tsOp = env.DeclareOp("EffectFunctions", "Trigger Random Event", voidType, new TsOp.EvalDelegate(Actions.TriggerRandomEvent));
 
+      // 'Reset BattleTech Viewscreen' action
+      Main.Logger.Log("Declaring 'Reset BattleTech Viewscreen' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Reset BattleTech Viewscreen", voidType, new TsOp.EvalDelegate(Actions.ResetBattleTechViewscreen));
+
+      // 'Take Contract' action
+      Main.Logger.Log("Declaring 'Take Contract' action");
+      tsOp = env.DeclareOp("EffectFunctions", "Take Contract", voidType, new TsOp.EvalDelegate(Actions.TakeContract));
+      tsOp.DeclareInput("contractId", stringType);
+      tsOp.DeclareInput("employer", stringType);
+      tsOp.DeclareInput("target", stringType);
+      tsOp.DeclareInput("targetSystem", stringType);
+      tsOp.DeclareInput("mapId", stringType);
+      tsOp.DeclareInput("difficulty", intType);
+      tsOp.DeclareInput("closeConversation", intType);
+
+
       /*
       * VALUE GETTERS
       */
@@ -173,6 +195,10 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech Float", floatType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechFloat));
       tsOp.DeclareInput("scope", intType);
       tsOp.DeclareInput("statName", stringType);
+
+      // `Get Current Date` value getter
+      Main.Logger.Log("Declaring 'Get Current Date' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get Current Date", stringType, new TsOp.EvalDelegate(ValueGetters.GetCurrentDate));
 
       Main.Logger.Log("Finished declaring conversation upgrades");
     }

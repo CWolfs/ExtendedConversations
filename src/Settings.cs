@@ -1,5 +1,9 @@
 namespace ExtendedConversations {
     public class Settings {
-        public bool placeHolder = false;
+        // Debug logging flags
+        public bool EnableDebugLogging = false;
+        public bool DebugLogConditions = false;
+        public bool DebugLogActions = false;
+        public bool DebugLogNodeText = false;
     }
 }

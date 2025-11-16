@@ -11,6 +11,7 @@ namespace ExtendedConversations {
     public class Main {
         public static ILog Logger;
         private static Settings settings;
+        public static Settings Settings { get { return settings; } }
 
         public static void InitLogger(string modDirectory) {
             Dictionary<string, LogLevel> logLevels = new Dictionary<string, LogLevel> {
