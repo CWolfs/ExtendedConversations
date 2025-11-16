@@ -25,11 +25,12 @@ Dialog tags allow you to inject data into your dialog text.
 Conditions control if a conversation Response Node (yellow node) appears or not.
 
 - `Evaluate Tag for Current System` - This allows you to check if the current star system has the tag specified.
-- `Evaluate BattleTech String` - This allows you to check against a commander, company or current system string statistic.
+- `Evaluate BattleTech String` - This allows you to check against a commander, company or current system string statistic. Supports both string comparisons (equal to, not equal to) and date comparisons (less than, less than or equal to, greater than, greater than or equal to). All date operations use precision-based fuzzy matching - dates are compared at the precision of the less precise value (e.g., "3026" == "3026-01-20" is true at year precision, "3026" < "3027-06-15" is true at year precision). Date format can be yyyy (3026), yyyy-MM (3026-01), or yyyy-MM-dd (3026-01-20).
 - `Evaluate BattleTech Int` - This allows you to check against a commander, company or current system integer statistic.
 - `Evaluate BattleTech Float` - This allows you to check against a commander, company or current system float statistic.
 - `Evaluate Funds` - This allows you to check a fund amount against the company funds.
 - `Evaluate Timeline` - This allows you to flexibly check and test a date against the current timeline
+- `Evaluate Days Since Date` - This allows you to check if the number of days since a given date meets a certain criteria (e.g., less than, equal to, greater than X days). Date format can be yyyy (3026), yyyy-MM (3026-01), or yyyy-MM-dd (3026-01-20).
 
 ### Actions
 
@@ -56,6 +57,7 @@ Actions are pieces of functionality that can be run.
 - `Get BattleTech String` - This can be used in the above conditions and actions. It allows you to grab a commander, company or current system string statistic for use in the other operations. An example would be storing a system id in a company stat, then using this to pull out the system id in the `Set Current System` action.
 - `Get BattleTech Int` - Same as above but for the return type of 'int'
 - `Get BattleTech Float` - Same as above but for the return type of 'float'
+- `Get Current Date` - This returns the current simulation date in yyyy-MM-dd format (e.g. 3050-01-20). This can be used in conditions and actions that accept string values.
 
 ## Author
 
