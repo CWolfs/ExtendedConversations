@@ -61,6 +61,13 @@ namespace ExtendedConversations.Core {
       tsOp.DeclareInput("operation", intType);
       tsOp.DeclareInput("date", stringType);
 
+      // Evaluate Days Since Date
+      Main.Logger.Log("Declaring 'Evaluate Days Since Date' condition");
+      tsOp = env.DeclareOp("ConditionFunction", "Evaluate Days Since Date", boolType, new TsOp.EvalDelegate(Conditions.EvaluateDaysSinceDate));
+      tsOp.DeclareInput("date", stringType);
+      tsOp.DeclareInput("operation", intType);
+      tsOp.DeclareInput("days", intType);
+
       /*
       * ACTIONS
       */
@@ -188,6 +195,10 @@ namespace ExtendedConversations.Core {
       tsOp = env.DeclareOp("ValueGetterFunctions", "Get BattleTech Float", floatType, new TsOp.EvalDelegate(ValueGetters.GetBattleTechFloat));
       tsOp.DeclareInput("scope", intType);
       tsOp.DeclareInput("statName", stringType);
+
+      // `Get Current Date` value getter
+      Main.Logger.Log("Declaring 'Get Current Date' value getter");
+      tsOp = env.DeclareOp("ValueGetterFunctions", "Get Current Date", stringType, new TsOp.EvalDelegate(ValueGetters.GetCurrentDate));
 
       Main.Logger.Log("Finished declaring conversation upgrades");
     }

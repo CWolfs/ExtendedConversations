@@ -229,5 +229,97 @@ namespace ExtendedConversations.Core {
       Main.Logger.Log($"[EvaluateTimeline] RESULT: Operation '{operationName}' (op={operation}) returned {result}");
       return result;
     }
+
+    public static object EvaluateDaysSinceDate(TsEnvironment env, object[] inputs) {
+      Main.Logger.Log($"[EvaluateDaysSinceDate] Entered EvaluateDaysSinceDate condition.");
+
+      string date = env.ToString(inputs[0]); // format is like either 3050 (year only), 3050-02 (year and month) or 3050-02-01 (year, month and day)
+      int operation = env.ToInt(inputs[1]);
+      int compareDays = env.ToInt(inputs[2]);
+      DateTime currentDate = UnityGameInstance.BattleTechGame.Simulation.CurrentDate;
+      DateTime parsedDate;
+
+      // Debug logging - Log all inputs
+      Main.Logger.Log($"[EvaluateDaysSinceDate] TRIGGERED: dateString='{date}', operation={operation}, compareDays={compareDays}, currentDate={currentDate.Date.ToString("yyyy-MM-dd")}");
+
+      // Parse date with flexible format support
+      switch (date.Length) {
+        case 4: // year only
+          if (!int.TryParse(date, out int yearOnly)) {
+            Main.Logger.LogError($"[EvaluateDaysSinceDate] Year is not a valid integer. Provided date: '{date}'");
+            return false;
+          }
+
+          parsedDate = new DateTime(yearOnly, 1, 1).Date;
+          Main.Logger.Log($"[EvaluateDaysSinceDate] Parsed year-only: parsedDate={parsedDate:yyyy-MM-dd}");
+          break;
+        case 6: // year and month (yyyy-M format like "3050-6")
+        case 7: // year and month (yyyy-MM format like "3050-06")
+          // Support both zero-padded (yyyy-MM) and non-zero-padded (yyyy-M) month formats
+          string[] yearMonthFormats = { "yyyy-MM", "yyyy-M" };
+          if (!DateTime.TryParseExact(date, yearMonthFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateDaysSinceDate] Year-month date is not in a valid format (yyyy-MM or yyyy-M). Provided date: '{date}'");
+            return false;
+          }
+
+          parsedDate = parsedDate.Date; // Strip time component
+          Main.Logger.Log($"[EvaluateDaysSinceDate] Parsed year-month: parsedDate={parsedDate:yyyy-MM-dd}");
+          break;
+        case 8: // year, month and day (yyyy-M-d format like "3050-6-5")
+        case 9: // year, month and day (yyyy-MM-d or yyyy-M-dd format like "3050-06-5" or "3050-6-05")
+        case 10: // year, month and day (yyyy-MM-dd format like "3050-06-05")
+          // Support multiple full date formats (zero-padded and non-zero-padded)
+          string[] fullDateFormats = { "yyyy-MM-dd", "yyyy-M-d", "yyyy-MM-d", "yyyy-M-dd" };
+          if (!DateTime.TryParseExact(date, fullDateFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            Main.Logger.LogError($"[EvaluateDaysSinceDate] Date is not in a valid format (yyyy-MM-dd, yyyy-M-d, etc.). Provided date: '{date}'");
+            return false;
+          }
+
+          parsedDate = parsedDate.Date; // Strip time component
+          Main.Logger.Log($"[EvaluateDaysSinceDate] Parsed full date: parsedDate={parsedDate:yyyy-MM-dd}");
+          break;
+        default: {
+          Main.Logger.LogError($"[EvaluateDaysSinceDate] Invalid date format: {date}");
+          return false;
+        }
+      }
+
+      // Calculate days since the parsed date
+      int daysSince = (int)(currentDate.Date - parsedDate.Date).TotalDays;
+      Main.Logger.Log($"[EvaluateDaysSinceDate] Days since {parsedDate:yyyy-MM-dd}: {daysSince}");
+
+      // Perform comparison based on operation
+      bool result;
+      string operationName;
+
+      switch (operation) {
+        case 1: // less than
+          operationName = "Less Than";
+          result = daysSince < compareDays;
+          break;
+        case 2: // equal to
+          operationName = "Equal To";
+          result = daysSince == compareDays;
+          break;
+        case 3: // greater than
+          operationName = "Greater Than";
+          result = daysSince > compareDays;
+          break;
+        case 4: // less than or equal to
+          operationName = "Less Than Or Equal To";
+          result = daysSince <= compareDays;
+          break;
+        case 5: // greater than or equal to
+          operationName = "Greater Than Or Equal To";
+          result = daysSince >= compareDays;
+          break;
+        default:
+          Main.Logger.LogError($"[EvaluateDaysSinceDate] Invalid operation: {operation}");
+          return false;
+      }
+
+      Main.Logger.Log($"[EvaluateDaysSinceDate] RESULT: Operation '{operationName}' (op={operation}) comparing {daysSince} days against {compareDays} returned {result}");
+      return result;
+    }
   }
 }
