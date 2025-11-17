@@ -72,12 +72,6 @@ namespace ExtendedConversations {
         SGRoomManager roomManager = UnityGameInstance.Instance.Game.Simulation.RoomManager;
         DropshipLocation dropshipLocation = roomManager.currRoomDropshipLocation;
 
-        // // Conference room needs delayed message processing for modded conversations with timeskips
-        // if (dropshipLocation == DropshipLocation.CONFERENCE) {
-        //   Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.IsCustomRoomActive] In Conference Room - custom room active.");
-        //   return true;
-        // }
-
         return !EnumUtils.IsDefined<DropshipLocation>((int)dropshipLocation);
       }
     }
