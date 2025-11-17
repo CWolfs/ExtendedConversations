@@ -59,6 +59,35 @@ Actions are pieces of functionality that can be run.
 - `Get BattleTech Float` - Same as above but for the return type of 'float'
 - `Get Current Date` - This returns the current simulation date in yyyy-MM-dd format (e.g. 3050-01-20). This can be used in conditions and actions that accept string values.
 
+### TimeSkip Interrupt Allowlist
+
+When using the TimeSkip you can configure which interrupts you allow when in timeskip. You specify it in the mod.json in the `TimeSkipAllowedInterrupts` property. Using the values from the `SimGameInterruptManager.InterruptType` enum.
+
+```
+Unknown,
+LossPopup,
+GenericPopup,
+PauseNotification,
+MechPlacementPopup,
+EventTest,
+EventPopup,
+WinPopup,
+FinancialReport,
+Conversation,
+TravelContractNotification,
+HeavyMetalFreeContentPopup,
+HeavyMetalLootPopup,
+CareerModeEndScreen,
+RewardsPopup,
+FlashpointEndScreen,
+FlashpointsExistNotification,
+FlashpointEnteredSystemNotification,
+FlashpointMilestoneCheck,
+NewStarmapTechNotification,
+MechwarriorHasDiedNotification,
+AutoSave
+```
+
 ## Author
 
 Richard Griffiths (CWolf)

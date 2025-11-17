@@ -9,12 +9,16 @@ using ExtendedConversations.State;
 namespace ExtendedConversations {
   [HarmonyPatch(typeof(SimGameInterruptManager), "DisplayIfAvailable")]
   public class SimGameInterruptManagerDisplayIfAvailablePatch {
-    static bool Prefix() {
+    static bool Prefix(SimGameInterruptManager __instance) {
       try {
         TimeSkipStateManager stateManager = TimeSkipStateManager.Instance;
 
         if (stateManager.IsTimeSkipActive && stateManager.DisablePopups) {
-          Main.Logger.Log($"[SimGameInterruptManagerDisplayIfAvailablePatch] Suppressing popup display during time skip");
+          string popupType = "Unknown";
+          if (__instance.popups.Count > 0) {
+            popupType = __instance.popups[0].type.ToString();
+          }
+          Main.Logger.Log($"[SimGameInterruptManagerDisplayIfAvailablePatch] Suppressing popup during time skip: {popupType}");
           return false;
         }
 
