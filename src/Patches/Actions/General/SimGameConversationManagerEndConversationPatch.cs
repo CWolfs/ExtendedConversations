@@ -31,6 +31,19 @@ namespace ExtendedConversations {
 
         ProcessForceNonFPConferenceRoomPatch(__instance);
 
+        // Fix for flashpoint conference room softlock: ensure valid exit location is set
+        SimGameState simGame = UnityGameInstance.Instance.Game.Simulation;
+        if (simGame.CurRoomState == DropshipLocation.CONFERENCE) {
+          Main.Logger.Log($"[EndConversation.Prefix] Conference room exit location: {__instance.exitDropshipLocation}");
+
+          // Can't exit conference room TO conference room (circular), and INVALID_UNSET causes transition failure
+          if (__instance.exitDropshipLocation == DropshipMenuType.INVALID_UNSET ||
+              __instance.exitDropshipLocation == DropshipMenuType.Conference) {
+            Main.Logger.LogWarning($"[EndConversation.Prefix] Conference room has invalid/circular exit location ({__instance.exitDropshipLocation}). Setting default to Ship.");
+            __instance.exitDropshipLocation = DropshipMenuType.Ship;
+          }
+        }
+
         return true;
       } catch (Exception e) {
         Main.Logger.LogError("[SimGameConversationManagerEndConversationPatch] An error occured in SimGameConversationManagerEndConversationPatch. Caught gracefully." + e.StackTrace.ToString());
@@ -59,6 +72,12 @@ namespace ExtendedConversations {
         SGRoomManager roomManager = UnityGameInstance.Instance.Game.Simulation.RoomManager;
         DropshipLocation dropshipLocation = roomManager.currRoomDropshipLocation;
 
+        // // Conference room needs delayed message processing for modded conversations with timeskips
+        // if (dropshipLocation == DropshipLocation.CONFERENCE) {
+        //   Main.Logger.Log("[SimGameConversationManagerEndConversationPatch.IsCustomRoomActive] In Conference Room - custom room active.");
+        //   return true;
+        // }
+
         return !EnumUtils.IsDefined<DropshipLocation>((int)dropshipLocation);
       }
     }
@@ -68,6 +87,8 @@ namespace ExtendedConversations {
         const int MAX_RECURSION_DEPTH = 10;
         const int MAX_TOTAL_WAIT_TIME = 30000; // 30 seconds
         const int DELAY_MS = 1500;
+
+        Main.Logger.Log($"[CheckAndRunDelayedMessages] ENTER - Depth: {recursionDepth}, TotalWait: {totalWaitTime}ms, ConvoID: {originalConversationId}");
 
         // Safety check: prevent infinite recursion
         if (recursionDepth >= MAX_RECURSION_DEPTH) {
@@ -89,9 +110,17 @@ namespace ExtendedConversations {
           return;
         }
 
+        Main.Logger.Log($"[CheckAndRunDelayedMessages] About to wait {DELAY_MS}ms...");
         await System.Threading.Tasks.Task.Delay(DELAY_MS);
+        Main.Logger.Log($"[CheckAndRunDelayedMessages] Wait complete.");
 
         SimGameState simGame2 = UnityGameInstance.Instance.Game.Simulation;
+        bool hasQueue = simGame2.interruptQueue.HasQueue;
+        bool isQueueOpen = simGame2.interruptQueue.IsOpen;
+        bool isConvoOn = simGame2.ConversationManager.IsOn;
+
+        Main.Logger.Log($"[CheckAndRunDelayedMessages] State - HasQueue: {hasQueue}, IsOpen: {isQueueOpen}, ConvoOn: {isConvoOn}");
+
         if (simGame2.interruptQueue.HasQueue) {
           // Check if a different conversation has started
           string currentConversationId = simGame2.ConversationManager?.thisConvoDef?.idRef?.id;
@@ -105,11 +134,14 @@ namespace ExtendedConversations {
           if (!simGame2.interruptQueue.IsOpen && !simGame2.ConversationManager.IsOn) {
             Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Displaying interrupt queue (depth: {recursionDepth}, waited: {totalWaitTime + DELAY_MS}ms)");
             simGame2.interruptQueue.DisplayIfAvailable();
+            Main.Logger.Log($"[CheckAndRunDelayedMessages] DisplayIfAvailable() called successfully.");
           } else {
             if (simGame2.interruptQueue.IsOpen) Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for interrupt popup to close (depth: {recursionDepth}).");
             if (simGame2.ConversationManager.IsOn) Main.Logger.Log($"[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] Waiting for conversation manager to finish (depth: {recursionDepth}).");
             await CheckAndRunDelayedMessages(originalConversationId, recursionDepth + 1, totalWaitTime + DELAY_MS);
           }
+        } else {
+          Main.Logger.Log($"[CheckAndRunDelayedMessages] No queue present - exiting normally.");
         }
       } catch (Exception e) {
         Main.Logger.LogError("[SimGameConversationManagerEndConversationPatch.CheckAndRunDelayedMessages] An error occured in CheckAndRunDelayedMessages. Caught gracefully." + e.StackTrace.ToString());
