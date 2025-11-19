@@ -1,0 +1,66 @@
+name: Build Extended Conversations
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      COMMIT_SHORT_SHA: ${{ github.sha }} # Default fallback for parse-time check
+
+    steps:
+      - name: Checkout ExtendedConversations
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Checkout DLL References
+        uses: actions/checkout@v4
+        with:
+          repository: CWolfs/BT-Mod-Dependencies
+          path: BT-Mod-Dependencies
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          lfs: true
+
+      - name: Build DLL
+        run: dotnet build src/ExtendedConversations.csproj -c Release
+
+      - name: Upload DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtendedConversations
+          path: src/bin/Release/net471/ExtendedConversations.dll
+
+      - name: Extract version from mod.json
+        shell: pwsh
+        run: |
+          $modJson = Get-Content -Raw -Path "mod.json" | ConvertFrom-Json
+          $version = $modJson.Version
+          echo "MOD_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Prepare Release
+        run: |
+          mkdir release
+          mkdir release\ExtendedConversations
+          copy src\bin\Release\net471\ExtendedConversations.dll release\ExtendedConversations\ExtendedConversations.dll
+          copy mod.json release\ExtendedConversations\mod.json
+          xcopy /E /I operations release\ExtendedConversations\operations
+          Compress-Archive -Path release\ExtendedConversations -DestinationPath release\ExtendedConversations-${{ env.MOD_VERSION }}.zip
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ env.MOD_VERSION }}"
+          name: "Extended Conversations – v${{ env.MOD_VERSION }}"
+          body: "Automated release for v${{ env.MOD_VERSION }} - ${{ env.COMMIT_SHORT_SHA }}"
+          draft: true
+          prerelease: false
+          files: |
+            release/ExtendedConversations-${{ env.MOD_VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
